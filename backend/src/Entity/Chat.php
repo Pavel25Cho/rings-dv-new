@@ -35,13 +35,9 @@ class Chat
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $messages;
 
-    #[ORM\OneToMany(mappedBy: 'chat', targetEntity: OrderItem::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $orderItems;
-
     public function __construct()
     {
         $this->messages = new ArrayCollection();
-        $this->orderItems = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -99,20 +95,6 @@ class Chat
             $this->messages->add($message);
             $message->setChat($this);
             $this->lastMessageAt = new \DateTime();
-        }
-        return $this;
-    }
-
-    public function getOrderItems(): Collection
-    {
-        return $this->orderItems;
-    }
-
-    public function addOrderItem(OrderItem $item): static
-    {
-        if (!$this->orderItems->contains($item)) {
-            $this->orderItems->add($item);
-            $item->setChat($this);
         }
         return $this;
     }

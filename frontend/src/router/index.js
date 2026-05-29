@@ -57,6 +57,12 @@ const routes = [
     name: 'AdminDashboard',
     component: () => import('@/views/admin/Dashboard.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/import',
+    name: 'AdminImport',
+    component: () => import('@/views/admin/Import.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 
@@ -65,16 +71,27 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
+  // Дожидаемся инициализации хранилища, если оно еще не инициализировано
+  if (!authStore.initialized) {
+    await authStore.checkAuth()
+  }
+
+  // Проверяем требование аутентификации
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'Login' })
-  } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    next({ name: 'Home' })
-  } else {
-    next()
+    return
   }
+
+  // Проверяем требование прав администратора
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    next({ name: 'Home' })
+    return
+  }
+
+  next()
 })
 
 export default router

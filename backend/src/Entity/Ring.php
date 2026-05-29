@@ -30,8 +30,8 @@ class Ring
     #[ORM\Column(type: 'json')]
     private array $dimensions = [];
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $inStock = true;
+    #[ORM\Column]
+    private int $inStock = 0;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $price = null;
@@ -48,12 +48,8 @@ class Ring
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $updatedAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'ring', targetEntity: OrderItem::class)]
-    private Collection $orderItems;
-
     public function __construct()
     {
-        $this->orderItems = new ArrayCollection();
         $this->createdAt = new \DateTime();
         $this->updatedAt = new \DateTime();
     }
@@ -102,12 +98,12 @@ class Ring
         return $this;
     }
 
-    public function isInStock(): bool
+    public function getInStock(): int
     {
         return $this->inStock;
     }
 
-    public function setInStock(bool $inStock): static
+    public function setInStock(int $inStock): static
     {
         $this->inStock = $inStock;
         return $this;
@@ -154,10 +150,5 @@ class Ring
     public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
-    }
-
-    public function getOrderItems(): Collection
-    {
-        return $this->orderItems;
     }
 }
