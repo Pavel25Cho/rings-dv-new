@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: RingRepository::class)]
 #[ORM\Table(name: 'rings')]
@@ -22,6 +23,7 @@ class Ring
 
     #[ORM\ManyToOne(targetEntity: RingGroup::class, inversedBy: 'rings')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Ignore]
     private ?RingGroup $ringGroup = null;
 
     #[ORM\Column(length: 100)]

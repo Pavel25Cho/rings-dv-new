@@ -6,6 +6,7 @@ use App\Repository\RingGroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: RingGroupRepository::class)]
 #[ORM\Table(name: 'ring_groups')]
@@ -56,6 +57,7 @@ class RingGroup
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\OneToMany(mappedBy: 'ringGroup', targetEntity: Ring::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Ignore]
     private Collection $rings;
 
     public function __construct()

@@ -26,49 +26,45 @@ class CatalogController extends AbstractController
         $qb = $this->entityManager->getRepository(RingGroup::class)->createQueryBuilder('rg');
         $qb->where('rg.isHidden = false');
 
-        // Фильтр по typeCode
-        if (isset($queryParams['typeCode']) && !empty($queryParams['typeCode'])) {
-            $qb->andWhere('rg.typeCode = :typeCode')
-               ->setParameter('typeCode', $queryParams['typeCode']);
-        }
-
-        // Фильтр по материалу
-        if (isset($queryParams['material']) && !empty($queryParams['material'])) {
-            $qb->andWhere('(rg.materialEn LIKE :material OR rg.materialRu LIKE :material)')
-               ->setParameter('material', '%' . $queryParams['material'] . '%');
-        }
-
-        // Фильтр по бренду
-        if (isset($queryParams['brand']) && !empty($queryParams['brand'])) {
-            $qb->andWhere('rg.brand LIKE :brand')
-               ->setParameter('brand', '%' . $queryParams['brand'] . '%');
-        }
-
-        // Фильтр по артикулу (ищем через кольца)
-        if (isset($queryParams['partNumber']) && !empty($queryParams['partNumber'])) {
-            $rings = $this->entityManager->getRepository(Ring::class)->createQueryBuilder('r')
+        // Универсальный поиск по названию, типу и номеру колец
+        if (isset($queryParams['search']) && !empty($queryParams['search'])) {
+            $searchTerm = $queryParams['search'];
+            
+            // Ищем группы, у которых есть кольца с таким номером
+            $ringsWithNumber = $this->entityManager->getRepository(Ring::class)->createQueryBuilder('r')
                 ->select('DISTINCT IDENTITY(r.ringGroup)')
                 ->where('r.partNumber LIKE :partNumber')
                 ->andWhere('r.isHidden = false')
-                ->setParameter('partNumber', '%' . $queryParams['partNumber'] . '%')
+                ->setParameter('partNumber', '%' . $searchTerm . '%')
                 ->getQuery()
                 ->getResult();
 
-            $groupIds = array_column($rings, 1);
+            $groupIdsFromRings = !empty($ringsWithNumber) ? array_column($ringsWithNumber, 1) : [];
             
-            if (empty($groupIds)) {
-                return $this->json([]);
+            // Комбинируем поиск: по названию/типу группы ИЛИ по ID групп с подходящими кольцами
+            if (!empty($groupIdsFromRings)) {
+                $qb->andWhere(
+                    $qb->expr()->orX(
+                        $qb->expr()->like('rg.nameRu', ':search'),
+                        $qb->expr()->like('rg.nameEn', ':search'),
+                        $qb->expr()->like('rg.typeCode', ':search'),
+                        $qb->expr()->in('rg.id', ':groupIds')
+                    )
+                )
+                ->setParameter('search', '%' . $searchTerm . '%')
+                ->setParameter('groupIds', $groupIdsFromRings);
+            } else {
+                // Если нет колец с таким номером, ищем только по названию/типу группы
+                $qb->andWhere('(rg.nameRu LIKE :search OR rg.nameEn LIKE :search OR rg.typeCode LIKE :search)')
+                   ->setParameter('search', '%' . $searchTerm . '%');
             }
-
-            $qb->andWhere('rg.id IN (:groupIds)')
-               ->setParameter('groupIds', $groupIds);
         }
 
-        // Фильтр по наличию
+        // Фильтр по наличию (всегда активен для обычного каталога)
         if (isset($queryParams['inStockOnly']) && ($queryParams['inStockOnly'] === 'true' || $queryParams['inStockOnly'] === true)) {
             $ringsWithStock = $this->entityManager->getRepository(Ring::class)->createQueryBuilder('r')
                 ->select('DISTINCT IDENTITY(r.ringGroup)')
-                ->where('r.inStock = true')
+                ->where('r.inStock > 0')
                 ->andWhere('r.isHidden = false')
                 ->getQuery()
                 ->getResult();
@@ -79,8 +75,8 @@ class CatalogController extends AbstractController
                 return $this->json([]);
             }
 
-            $qb->andWhere('rg.id IN (:groupIds)')
-               ->setParameter('groupIds', $groupIds);
+            $qb->andWhere('rg.id IN (:stockGroupIds)')
+               ->setParameter('stockGroupIds', $groupIds);
         }
 
         $qb->orderBy('rg.typeCode', 'ASC');
@@ -106,7 +102,7 @@ class CatalogController extends AbstractController
 
         // Фильтр по наличию
         if (isset($queryParams['inStockOnly']) && ($queryParams['inStockOnly'] === 'true' || $queryParams['inStockOnly'] === true)) {
-            $qb->andWhere('r.inStock = true');
+            $qb->andWhere('r.inStock > 0');
         }
 
         // Фильтр по артикулу

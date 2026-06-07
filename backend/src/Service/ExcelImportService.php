@@ -504,4 +504,305 @@ class ExcelImportService
 
         return $normalized;
     }
+
+    /**
+     * Импорт цен и количества из Excel файла
+     * Колонка A - тип кольца (typeCode)
+     * Колонка B - номер (partNumber)
+     * Колонка F - количество (inStock)
+     * Колонка M - цена (price)
+     */
+    public function importPricesAndStock(string $filePath): array
+    {
+        // Увеличиваем лимит времени выполнения
+        set_time_limit(600);
+        
+        // Увеличиваем лимит памяти
+        ini_set('memory_limit', '1024M');
+        
+        // Настраиваем PhpSpreadsheet для минимального потребления памяти
+        \PhpOffice\PhpSpreadsheet\Settings::setCache(
+            new \PhpOffice\PhpSpreadsheet\Collection\Memory\SimpleCache3()
+        );
+        
+        // Читаем файл в режиме только для чтения
+        $reader = IOFactory::createReader(IOFactory::identify($filePath));
+        $reader->setReadDataOnly(true);
+        $reader->setReadEmptyCells(false);
+        
+        $spreadsheet = $reader->load($filePath);
+        
+        $stats = [
+            'rings_updated' => 0,
+            'rings_not_found' => 0,
+            'rings_not_found_list' => [],
+            'rows_processed' => 0,
+            'errors' => []
+        ];
+
+        try {
+            // Шаг 1: Обнуляем все цены и количества перед импортом
+            $this->logger->info('Resetting all prices and stock...');
+            $this->resetAllPricesAndStock();
+            $this->logger->info('All prices and stock reset to 0');
+            
+            $sheet = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+            
+            // Шаг 2: Собираем все данные из файла в память для обработки дубликатов
+            $this->logger->info('Reading data from file...');
+            $importData = []; // [typeCode][partNumber] => ['price' => max, 'stock' => sum]
+            
+            // Начинаем со 2-й строки (пропускаем заголовок)
+            for ($row = 2; $row <= $highestRow; $row++) {
+                try {
+                    $stats['rows_processed']++;
+                    
+                    // Читаем данные из колонок
+                    $typeCode = $this->getCellValue($sheet, 'A', $row);
+                    $partNumber = $this->getCellValue($sheet, 'B', $row);
+                    $inStock = $this->getCellValue($sheet, 'F', $row);
+                    $price = $this->getCellValue($sheet, 'M', $row);
+
+                    // Пропускаем строки без ключевых данных
+                    if (empty($typeCode) || empty($partNumber)) {
+                        continue;
+                    }
+
+                    // Очищаем typeCode от лишних символов
+                    $typeCode = trim($typeCode);
+                    $partNumber = trim($partNumber);
+
+                    // Инициализируем структуру данных для этого кольца
+                    if (!isset($importData[$typeCode])) {
+                        $importData[$typeCode] = [];
+                    }
+                    
+                    if (!isset($importData[$typeCode][$partNumber])) {
+                        $importData[$typeCode][$partNumber] = [
+                            'price' => null,
+                            'stock' => 0,
+                            'row' => $row
+                        ];
+                    }
+
+                    // Обрабатываем количество (суммируем)
+                    if ($inStock !== null && $inStock !== '') {
+                        $inStockValue = is_numeric($inStock) ? (int)$inStock : 0;
+                        $importData[$typeCode][$partNumber]['stock'] += $inStockValue;
+                    }
+
+                    // Обрабатываем цену (берём максимальную)
+                    if ($price !== null && $price !== '') {
+                        $priceValue = $this->normalizePrice($price);
+                        if ($priceValue !== null) {
+                            $currentPrice = $importData[$typeCode][$partNumber]['price'];
+                            if ($currentPrice === null || (float)$priceValue > (float)$currentPrice) {
+                                $importData[$typeCode][$partNumber]['price'] = $priceValue;
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    $stats['errors'][] = "Ошибка чтения строки $row: " . $e->getMessage();
+                    $this->logger->warning("Price/stock read error at row $row: " . $e->getMessage());
+                }
+            }
+            
+            $this->logger->info('Data read complete. Processing ' . count($importData) . ' type codes');
+            
+            // Освобождаем память от spreadsheet
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
+            gc_collect_cycles();
+            
+            // Шаг 3: Создаём индекс всех колец для быстрого поиска
+            $this->logger->info('Building rings index...');
+            $ringsIndex = $this->buildRingsIndex();
+            $this->logger->info('Rings index built with ' . count($ringsIndex) . ' type codes');
+
+            // Шаг 4: Обновляем кольца в БД
+            $batchSize = 50;
+            $processedCount = 0;
+            $ringsToUpdate = [];
+            
+            foreach ($importData as $typeCode => $rings) {
+                foreach ($rings as $partNumber => $data) {
+                    try {
+                        $ring = null;
+                        
+                        // Ищем кольцо в индексе
+                        if (isset($ringsIndex[$typeCode]) && isset($ringsIndex[$typeCode]['rings'][$partNumber])) {
+                            $ringId = $ringsIndex[$typeCode]['rings'][$partNumber];
+                            
+                            // Загружаем кольцо только если еще не загружено
+                            if (!isset($ringsToUpdate[$ringId])) {
+                                $ring = $this->entityManager->getRepository(Ring::class)->find($ringId);
+                                if ($ring) {
+                                    $ringsToUpdate[$ringId] = $ring;
+                                }
+                            } else {
+                                $ring = $ringsToUpdate[$ringId];
+                            }
+                        }
+
+                        if (!$ring) {
+                            $stats['rings_not_found']++;
+                            $stats['rings_not_found_list'][] = [
+                                'typeCode' => $typeCode,
+                                'partNumber' => $partNumber,
+                                'row' => $data['row']
+                            ];
+                            $this->logger->debug("Ring not found: typeCode=$typeCode, partNumber=$partNumber");
+                            continue;
+                        }
+
+                        // Обновляем количество
+                        $ring->setInStock($data['stock']);
+
+                        // Обновляем цену
+                        $ring->setPrice($data['price']);
+
+                        $this->entityManager->persist($ring);
+                        $stats['rings_updated']++;
+                        $processedCount++;
+
+                        // Flush каждые N записей для оптимизации
+                        if ($processedCount % $batchSize === 0) {
+                            $this->entityManager->flush();
+                            $this->entityManager->clear();
+                            
+                            // Очищаем массив обновленных колец
+                            $ringsToUpdate = [];
+                            
+                            // Освобождаем память
+                            gc_collect_cycles();
+                            
+                            $this->logger->info("Processed $processedCount items, updated {$stats['rings_updated']} rings");
+                        }
+                    } catch (\Exception $e) {
+                        $stats['errors'][] = "Ошибка обновления кольца $typeCode - $partNumber: " . $e->getMessage();
+                        $this->logger->warning("Ring update error: $typeCode - $partNumber: " . $e->getMessage());
+                    }
+                }
+            }
+            
+            // Финальный flush для оставшихся записей
+            if ($processedCount % $batchSize !== 0) {
+                $this->entityManager->flush();
+            }
+            
+            $this->entityManager->clear();
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Price/stock import error: ' . $e->getMessage());
+            $stats['errors'][] = 'Критическая ошибка: ' . $e->getMessage();
+        } finally {
+            // Освобождаем память
+            if (isset($spreadsheet)) {
+                $spreadsheet->disconnectWorksheets();
+                unset($spreadsheet);
+            }
+            gc_collect_cycles();
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Обнуляет все цены и количество у всех колец
+     */
+    private function resetAllPricesAndStock(): void
+    {
+        $batchSize = 100;
+        $offset = 0;
+        
+        while (true) {
+            $rings = $this->entityManager->getRepository(Ring::class)
+                ->createQueryBuilder('r')
+                ->setFirstResult($offset)
+                ->setMaxResults($batchSize)
+                ->getQuery()
+                ->getResult();
+            
+            if (empty($rings)) {
+                break;
+            }
+            
+            foreach ($rings as $ring) {
+                $ring->setPrice(null);
+                $ring->setInStock(0);
+                $this->entityManager->persist($ring);
+            }
+            
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+            
+            $offset += $batchSize;
+            gc_collect_cycles();
+        }
+    }
+
+    /**
+     * Создаёт индекс всех колец для быстрого поиска
+     * Возвращает: [typeCode => ['groupId' => id, 'rings' => [partNumber => ringId]]]
+     */
+    private function buildRingsIndex(): array
+    {
+        $index = [];
+        
+        // Получаем все группы
+        $groups = $this->entityManager->getRepository(RingGroup::class)->findAll();
+        
+        foreach ($groups as $group) {
+            $typeCode = $group->getTypeCode();
+            
+            if (!isset($index[$typeCode])) {
+                $index[$typeCode] = [
+                    'groupId' => $group->getId(),
+                    'rings' => []
+                ];
+            }
+            
+            // Получаем все кольца группы
+            $rings = $this->entityManager->getRepository(Ring::class)
+                ->findBy(['ringGroup' => $group]);
+            
+            foreach ($rings as $ring) {
+                $partNumber = $ring->getPartNumber();
+                $index[$typeCode]['rings'][$partNumber] = $ring->getId();
+            }
+        }
+        
+        // Очищаем entityManager после построения индекса
+        $this->entityManager->clear();
+        
+        return $index;
+    }
+
+    /**
+     * Нормализует значение цены
+     */
+    private function normalizePrice($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        // Если это уже число
+        if (is_numeric($value)) {
+            return number_format((float)$value, 2, '.', '');
+        }
+
+        // Заменяем запятую на точку
+        $normalized = str_replace(',', '.', trim($value));
+        
+        // Удаляем все символы кроме цифр, точки и минуса
+        $normalized = preg_replace('/[^\d.\-]/', '', $normalized);
+
+        if (is_numeric($normalized)) {
+            return number_format((float)$normalized, 2, '.', '');
+        }
+
+        return null;
+    }
 }
