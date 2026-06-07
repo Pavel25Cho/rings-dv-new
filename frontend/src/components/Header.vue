@@ -47,6 +47,30 @@
         
         <div class="flex items-center gap-3">
           <template v-if="authStore.isAuthenticated">
+            <div class="relative" ref="cartDropdown">
+              <button 
+                @click="toggleCartMenu"
+                class="relative flex items-center gap-2 px-4 py-2.5 hover:bg-white/40 rounded-xl transition-all duration-300 backdrop-blur-sm"
+              >
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md relative">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  <span 
+                    v-if="cartStore.cartCount > 0"
+                    class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                  >
+                    {{ cartStore.cartCount > 9 ? '9+' : cartStore.cartCount }}
+                  </span>
+                </div>
+              </button>
+              
+              <CartDropdown
+                :visible="isCartMenuOpen"
+                @close="closeCartMenu"
+              />
+            </div>
+            
             <div class="relative" ref="profileDropdown">
               <button 
                 @click="toggleProfileMenu"
@@ -62,7 +86,7 @@
               <transition name="dropdown">
                 <div 
                   v-if="isProfileMenuOpen"
-                  class="absolute right-0 mt-3 w-72 glass-card-strong rounded-2xl overflow-hidden"
+                  class="absolute right-0 mt-3 w-72 glass-card-strongest rounded-2xl overflow-hidden"
                 >
                   <div class="px-5 py-4 border-b border-gray-200/50">
                     <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Аккаунт</p>
@@ -127,19 +151,39 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
+import CartDropdown from './CartDropdown.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const cartStore = useCartStore()
 
 const isProfileMenuOpen = ref(false)
+const isCartMenuOpen = ref(false)
 const profileDropdown = ref(null)
+const cartDropdown = ref(null)
 
 const toggleProfileMenu = () => {
   isProfileMenuOpen.value = !isProfileMenuOpen.value
+  if (isProfileMenuOpen.value) {
+    isCartMenuOpen.value = false
+  }
 }
 
 const closeProfileMenu = () => {
   isProfileMenuOpen.value = false
+}
+
+const toggleCartMenu = () => {
+  isCartMenuOpen.value = !isCartMenuOpen.value
+  if (isCartMenuOpen.value) {
+    isProfileMenuOpen.value = false
+    cartStore.fetchCart()
+  }
+}
+
+const closeCartMenu = () => {
+  isCartMenuOpen.value = false
 }
 
 const handleLogout = async () => {
@@ -157,9 +201,17 @@ onMounted(() => {
     if (profileDropdown.value && !profileDropdown.value.contains(event.target)) {
       closeProfileMenu()
     }
+    if (cartDropdown.value && !cartDropdown.value.contains(event.target)) {
+      closeCartMenu()
+    }
   }
   
   document.addEventListener('click', handleClickOutside)
+  
+  // Загружаем корзину при монтировании компонента
+  if (authStore.isAuthenticated) {
+    cartStore.fetchCart()
+  }
   
   onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside)

@@ -38,8 +38,8 @@ class Ring
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $price = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $photoUrl = null;
+    #[ORM\Column(type: 'json')]
+    private array $photos = [];
 
     #[ORM\Column(type: 'boolean')]
     private bool $isHidden = false;
@@ -122,14 +122,28 @@ class Ring
         return $this;
     }
 
-    public function getPhotoUrl(): ?string
+    public function getPhotos(): array
     {
-        return $this->photoUrl;
+        return $this->photos;
     }
 
-    public function setPhotoUrl(?string $photoUrl): static
+    public function setPhotos(array $photos): static
     {
-        $this->photoUrl = $photoUrl;
+        $this->photos = $photos;
+        return $this;
+    }
+
+    public function addPhoto(string $photoUrl): static
+    {
+        if (!in_array($photoUrl, $this->photos)) {
+            $this->photos[] = $photoUrl;
+        }
+        return $this;
+    }
+
+    public function removePhoto(string $photoUrl): static
+    {
+        $this->photos = array_values(array_filter($this->photos, fn($photo) => $photo !== $photoUrl));
         return $this;
     }
 

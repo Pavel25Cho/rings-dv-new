@@ -162,7 +162,7 @@ class AdminController extends AbstractController
                 'dimensions' => $ring->getDimensions(),
                 'inStock' => $ring->getInStock(),
                 'price' => $ring->getPrice(),
-                'photoUrl' => $ring->getPhotoUrl(),
+                'photos' => $ring->getPhotos(),
                 'isHidden' => $ring->isHidden(),
                 'ringGroup' => $ring->getRingGroup()?->getId(),
             ];
@@ -211,8 +211,8 @@ class AdminController extends AbstractController
             $ring->setPrice($data['price']);
         }
         
-        if (isset($data['photoUrl'])) {
-            $ring->setPhotoUrl($data['photoUrl']);
+        if (isset($data['photos'])) {
+            $ring->setPhotos($data['photos']);
         }
         
         if (isset($data['isHidden'])) {
@@ -256,6 +256,11 @@ class AdminController extends AbstractController
     public function deleteAllCatalog(): JsonResponse
     {
         try {
+            // Очищаем корзины всех пользователей
+            $this->entityManager->createQuery('UPDATE App\Entity\User u SET u.cart = :emptyCart')
+                ->setParameter('emptyCart', json_encode([]))
+                ->execute();
+            
             // Удаляем все кольца
             $this->entityManager->createQuery('DELETE FROM App\Entity\Ring r')->execute();
             
@@ -264,7 +269,7 @@ class AdminController extends AbstractController
             
             return $this->json([
                 'success' => true,
-                'message' => 'Весь каталог успешно удален'
+                'message' => 'Весь каталог успешно удален, корзины пользователей очищены'
             ]);
         } catch (\Exception $e) {
             return $this->json([

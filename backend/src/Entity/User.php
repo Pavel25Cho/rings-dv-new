@@ -37,6 +37,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $cart = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Chat::class, orphanRemoval: true)]
     private Collection $chats;
 
@@ -49,6 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->sentMessages = new ArrayCollection();
         $this->createdAt = new \DateTime();
         $this->updatedAt = new \DateTime();
+        $this->cart = [];
     }
 
     #[ORM\PreUpdate]
@@ -140,5 +144,76 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isAdmin(): bool
     {
         return in_array('ROLE_ADMIN', $this->roles, true);
+    }
+
+    public function getCart(): ?array
+    {
+        return $this->cart ?? [];
+    }
+
+    public function setCart(?array $cart): static
+    {
+        $this->cart = $cart;
+        return $this;
+    }
+
+    public function addToCart(int $ringId, int $quantity): static
+    {
+        if (!$this->cart) {
+            $this->cart = [];
+        }
+
+        $found = false;
+        foreach ($this->cart as &$item) {
+            if ($item['ringId'] === $ringId) {
+                $item['quantity'] += $quantity;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $this->cart[] = [
+                'ringId' => $ringId,
+                'quantity' => $quantity
+            ];
+        }
+
+        return $this;
+    }
+
+    public function removeFromCart(int $ringId): static
+    {
+        if (!$this->cart) {
+            return $this;
+        }
+
+        $this->cart = array_values(array_filter($this->cart, function($item) use ($ringId) {
+            return $item['ringId'] !== $ringId;
+        }));
+
+        return $this;
+    }
+
+    public function updateCartItemQuantity(int $ringId, int $quantity): static
+    {
+        if (!$this->cart) {
+            return $this;
+        }
+
+        foreach ($this->cart as &$item) {
+            if ($item['ringId'] === $ringId) {
+                $item['quantity'] = $quantity;
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    public function clearCart(): static
+    {
+        $this->cart = [];
+        return $this;
     }
 }

@@ -72,28 +72,44 @@
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-gray-900 mb-2">Фото кольца</label>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Фотографии кольца</label>
                 <div class="space-y-3">
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     @change="handlePhotoUpload"
                     class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
                   />
-                  <img
-                    v-if="formData.photoUrl"
-                    :src="formData.photoUrl"
-                    alt="Предпросмотр"
-                    class="mt-2 w-32 h-32 object-contain rounded-lg border-2 border-gray-200"
-                  />
-                  <button
-                    v-if="formData.photoUrl"
-                    type="button"
-                    @click="formData.photoUrl = ''"
-                    class="text-sm text-red-600 hover:text-red-800"
-                  >
-                    Удалить фото
-                  </button>
+                  
+                  <!-- Галерея фотографий -->
+                  <div v-if="formData.photos && formData.photos.length > 0" class="grid grid-cols-3 gap-3">
+                    <div
+                      v-for="(photo, index) in formData.photos"
+                      :key="index"
+                      class="relative group"
+                    >
+                      <img
+                        :src="photo"
+                        alt="Фото кольца"
+                        class="w-full h-32 object-contain rounded-lg border-2 border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        @click="removePhoto(index)"
+                        class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Удалить фото"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <p v-if="formData.photos && formData.photos.length > 0" class="text-sm text-gray-600">
+                    Загружено фотографий: {{ formData.photos.length }}
+                  </p>
                 </div>
               </div>
 
@@ -155,7 +171,7 @@ const formData = ref({
   dimensions: [],
   price: '',
   inStock: 0,
-  photoUrl: '',
+  photos: [],
   isHidden: false
 })
 
@@ -190,13 +206,24 @@ const uploadImage = async (file) => {
 }
 
 const handlePhotoUpload = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
+  const files = Array.from(event.target.files)
+  if (!files.length) return
   
-  const url = await uploadImage(file)
-  if (url) {
-    formData.value.photoUrl = url
+  uploading.value = true
+  
+  for (const file of files) {
+    const url = await uploadImage(file)
+    if (url) {
+      formData.value.photos.push(url)
+    }
   }
+  
+  uploading.value = false
+  event.target.value = ''
+}
+
+const removePhoto = (index) => {
+  formData.value.photos.splice(index, 1)
 }
 
 const saveRing = async () => {
@@ -239,7 +266,7 @@ watch(() => props.visible, (newVal) => {
       dimensions: props.ring.dimensions || [],
       price: props.ring.price || '',
       inStock: props.ring.inStock || 0,
-      photoUrl: props.ring.photoUrl || '',
+      photos: props.ring.photos || [],
       isHidden: props.ring.isHidden || false
     }
     dimensionsString.value = props.ring.dimensions ? JSON.stringify(props.ring.dimensions, null, 2) : '[]'

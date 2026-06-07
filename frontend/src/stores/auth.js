@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import apiClient from '@/config/axios'
+import { useCartStore } from './cart'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -62,6 +63,10 @@ export const useAuthStore = defineStore('auth', {
         this.setUser(response.data.user)
         this.initialized = true
         
+        // Загружаем корзину после успешного входа
+        const cartStore = useCartStore()
+        cartStore.fetchCart()
+        
         return response.data
       } catch (error) {
         throw error
@@ -98,6 +103,10 @@ export const useAuthStore = defineStore('auth', {
         this.initialized = false
         localStorage.removeItem('token')
         this.loading = false
+        
+        // Очищаем корзину при выходе
+        const cartStore = useCartStore()
+        cartStore.clearLocalCart()
       }
     },
 

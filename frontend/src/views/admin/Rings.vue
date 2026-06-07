@@ -1,14 +1,15 @@
 <template>
-  <div class="px-4 md:px-8 py-8">
-    <div class="max-w-7xl mx-auto">
-      <div class="glass-card-strong rounded-3xl p-10 mb-8">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h1 class="heading-xl">Управление кольцами</h1>
-            <p v-if="currentGroup" class="text-gray-600 mt-2">
-              Группа: {{ currentGroup.nameRu || currentGroup.typeCode }}
-            </p>
-          </div>
+  <div>
+    <div class="px-4 md:px-8 py-8">
+      <div class="max-w-7xl mx-auto">
+        <div class="glass-card-strong rounded-3xl p-10 mb-8">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h1 class="heading-xl">Управление кольцами</h1>
+              <p v-if="currentGroup" class="text-gray-600 mt-2">
+                Группа: {{ currentGroup.nameRu || currentGroup.typeCode }}
+              </p>
+            </div>
           <div class="flex gap-3">
             <button
               v-if="groupId"
@@ -39,6 +40,24 @@
               @input="applyFilters"
             />
           </div>
+          <label class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+            <input
+              v-model="filters.inStockOnly"
+              type="checkbox"
+              class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+              @change="applyFilters"
+            />
+            <span class="text-gray-700 font-medium whitespace-nowrap">Только с наличием</span>
+          </label>
+          <label class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+            <input
+              v-model="filters.withPriceOnly"
+              type="checkbox"
+              class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+              @change="applyFilters"
+            />
+            <span class="text-gray-700 font-medium whitespace-nowrap">Только с ценой</span>
+          </label>
         </div>
       </div>
 
@@ -52,13 +71,73 @@
           <table class="w-full">
             <thead class="bg-white/60">
               <tr>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">ID</th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Номер</th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Группа</th>
+                <th 
+                  @click="sortBy('id')"
+                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                >
+                  <div class="flex items-center gap-2">
+                    ID
+                    <svg v-if="sortField === 'id'" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': sortDirection === 'asc' }" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </th>
+                <th 
+                  @click="sortBy('partNumber')"
+                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                >
+                  <div class="flex items-center gap-2">
+                    Номер
+                    <svg v-if="sortField === 'partNumber'" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': sortDirection === 'asc' }" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </th>
+                <th 
+                  @click="sortBy('group')"
+                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                >
+                  <div class="flex items-center gap-2">
+                    Группа
+                    <svg v-if="sortField === 'group'" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': sortDirection === 'asc' }" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </th>
                 <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Размеры</th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Цена</th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">В наличии</th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Фото</th>
+                <th 
+                  @click="sortBy('price')"
+                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                >
+                  <div class="flex items-center gap-2">
+                    Цена
+                    <svg v-if="sortField === 'price'" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': sortDirection === 'asc' }" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </th>
+                <th 
+                  @click="sortBy('inStock')"
+                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                >
+                  <div class="flex items-center gap-2">
+                    В наличии
+                    <svg v-if="sortField === 'inStock'" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': sortDirection === 'asc' }" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </th>
+                <th 
+                  @click="sortBy('photo')"
+                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                >
+                  <div class="flex items-center gap-2">
+                    Фото
+                    <svg v-if="sortField === 'photo'" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': sortDirection === 'asc' }" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </th>
                 <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Действия</th>
               </tr>
             </thead>
@@ -96,13 +175,17 @@
                   </span>
                 </td>
                 <td class="px-6 py-4">
-                  <img
-                    v-if="ring.photoUrl"
-                    :src="ring.photoUrl"
-                    alt="Фото"
-                    class="w-16 h-16 object-contain rounded-lg cursor-pointer hover:shadow-lg transition-shadow"
-                    @click="openImageModal(ring.photoUrl)"
-                  />
+                  <div v-if="ring.photos && ring.photos.length > 0">
+                    <img
+                      :src="ring.photos[0]"
+                      alt="Фото"
+                      class="w-16 h-16 object-contain rounded-lg cursor-pointer hover:shadow-lg transition-shadow"
+                      @click="openPhotoGallery(ring.photos, ring.partNumber)"
+                    />
+                    <p v-if="ring.photos.length > 1" class="text-xs text-gray-500 mt-1 text-center">
+                      +{{ ring.photos.length - 1 }}
+                    </p>
+                  </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="px-6 py-4">
@@ -148,11 +231,19 @@
     @saved="onRingSaved"
   />
 
+  <PhotoGalleryModal
+    :visible="photoGalleryVisible"
+    :photos="galleryPhotos"
+    :title="galleryTitle"
+    @close="closePhotoGallery"
+  />
+
   <ImageModal
     :visible="imageModalVisible"
     :imageUrl="selectedImage"
     @close="closeImageModal"
   />
+  </div>
 </template>
 
 <script setup>
@@ -160,6 +251,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import apiClient from '@/config/axios'
 import EditRingModal from '@/components/EditRingModal.vue'
+import PhotoGalleryModal from '@/components/PhotoGalleryModal.vue'
 import ImageModal from '@/components/ImageModal.vue'
 
 const router = useRouter()
@@ -170,13 +262,20 @@ const groups = ref([])
 const loading = ref(true)
 const editModalVisible = ref(false)
 const selectedRing = ref(null)
+const photoGalleryVisible = ref(false)
+const galleryPhotos = ref([])
+const galleryTitle = ref('')
 const imageModalVisible = ref(false)
 const selectedImage = ref('')
 const filters = ref({
-  search: ''
+  search: '',
+  inStockOnly: false,
+  withPriceOnly: false
 })
 const currentPage = ref(1)
 const itemsPerPage = 20
+const sortField = ref('id')
+const sortDirection = ref('asc')
 
 const groupId = computed(() => route.query.groupId)
 
@@ -188,12 +287,61 @@ const currentGroup = computed(() => {
 const filteredRings = computed(() => {
   let filtered = rings.value
   
+  // Поиск
   if (filters.value.search) {
     const searchLower = filters.value.search.toLowerCase()
     filtered = filtered.filter(ring => 
       ring.partNumber?.toLowerCase().includes(searchLower)
     )
   }
+  
+  // Фильтр по наличию
+  if (filters.value.inStockOnly) {
+    filtered = filtered.filter(ring => ring.inStock > 0)
+  }
+  
+  // Фильтр по цене
+  if (filters.value.withPriceOnly) {
+    filtered = filtered.filter(ring => ring.price && ring.price > 0)
+  }
+  
+  // Сортировка
+  filtered = [...filtered].sort((a, b) => {
+    let aVal, bVal
+    
+    switch (sortField.value) {
+      case 'id':
+        aVal = parseInt(a.id) || 0
+        bVal = parseInt(b.id) || 0
+        break
+      case 'partNumber':
+        aVal = (a.partNumber || '').toLowerCase()
+        bVal = (b.partNumber || '').toLowerCase()
+        break
+      case 'group':
+        aVal = getGroupName(a.ringGroup).toLowerCase()
+        bVal = getGroupName(b.ringGroup).toLowerCase()
+        break
+      case 'price':
+        aVal = parseFloat(a.price) || 0
+        bVal = parseFloat(b.price) || 0
+        break
+      case 'inStock':
+        aVal = parseInt(a.inStock) || 0
+        bVal = parseInt(b.inStock) || 0
+        break
+      case 'photo':
+        aVal = a.photos && a.photos.length > 0 ? 1 : 0
+        bVal = b.photos && b.photos.length > 0 ? 1 : 0
+        break
+      default:
+        return 0
+    }
+    
+    if (aVal < bVal) return sortDirection.value === 'asc' ? -1 : 1
+    if (aVal > bVal) return sortDirection.value === 'asc' ? 1 : -1
+    return 0
+  })
   
   return filtered
 })
@@ -208,6 +356,15 @@ const paginatedRings = computed(() => {
 
 function applyFilters() {
   currentPage.value = 1
+}
+
+function sortBy(field) {
+  if (sortField.value === field) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortField.value = field
+    sortDirection.value = 'asc'
+  }
 }
 
 async function fetchRings() {
@@ -239,7 +396,7 @@ async function fetchGroups() {
 
 function getGroupName(groupId) {
   const group = groups.value.find(g => g.id === groupId)
-  return group ? (group.nameRu || group.typeCode) : '—'
+  return group ? group.typeCode : '—'
 }
 
 function openEditModal(ring) {
@@ -268,6 +425,16 @@ function openImageModal(url) {
 
 function closeImageModal() {
   imageModalVisible.value = false
+}
+
+function openPhotoGallery(photos, title) {
+  galleryPhotos.value = photos
+  galleryTitle.value = title
+  photoGalleryVisible.value = true
+}
+
+function closePhotoGallery() {
+  photoGalleryVisible.value = false
 }
 
 onMounted(async () => {
