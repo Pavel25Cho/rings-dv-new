@@ -40,6 +40,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $cart = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $name = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $phone = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Chat::class, orphanRemoval: true)]
     private Collection $chats;
 
@@ -214,6 +220,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function clearCart(): static
     {
         $this->cart = [];
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): static
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
         return $this;
     }
 }

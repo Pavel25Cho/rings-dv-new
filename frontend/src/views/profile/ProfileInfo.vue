@@ -45,16 +45,24 @@
     <div class="pt-4">
       <button
         @click="saveProfile"
+        :disabled="saving"
         class="btn btn-primary"
       >
-        Сохранить изменения
+        {{ saving ? 'Сохранение...' : 'Сохранить изменения' }}
       </button>
+      
+      <div v-if="message" :class="[
+        'mt-4 p-4 rounded-xl',
+        messageType === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+      ]">
+        {{ message }}
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
@@ -64,11 +72,46 @@ const profileData = ref({
   phone: ''
 })
 
+const saving = ref(false)
+const message = ref('')
+const messageType = ref('') // 'success' или 'error'
+
+// Инициализируем данные профиля при загрузке
+watch(() => authStore.user, (user) => {
+  if (user) {
+    profileData.value.name = user.name || ''
+    profileData.value.phone = user.phone || ''
+  }
+}, { immediate: true })
+
 const userInitial = computed(() => {
+  if (authStore.user?.name) {
+    return authStore.user.name.charAt(0).toUpperCase()
+  }
   return authStore.user?.email?.charAt(0).toUpperCase() || '?'
 })
 
-const saveProfile = () => {
-  alert('Функция сохранения профиля будет реализована')
+const saveProfile = async () => {
+  saving.value = true
+  message.value = ''
+  
+  try {
+    await authStore.updateProfile({
+      name: profileData.value.name,
+      phone: profileData.value.phone
+    })
+    
+    message.value = 'Профиль успешно обновлен'
+    messageType.value = 'success'
+    
+    setTimeout(() => {
+      message.value = ''
+    }, 3000)
+  } catch (error) {
+    message.value = error.response?.data?.message || 'Ошибка при сохранении профиля'
+    messageType.value = 'error'
+  } finally {
+    saving.value = false
+  }
 }
 </script>

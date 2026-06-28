@@ -158,6 +158,46 @@ class AuthController extends AbstractController
                 'email' => $user->getUserIdentifier(),
                 'role' => in_array('ROLE_ADMIN', $user->getRoles()) ? 'ADMIN' : 'USER',
                 'roles' => $user->getRoles(),
+                'name' => $user->getName(),
+                'phone' => $user->getPhone(),
+            ]
+        ]);
+    }
+
+    #[Route('/profile', name: 'profile', methods: ['PUT'])]
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Пользователь не авторизован'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (isset($data['name'])) {
+            $user->setName($data['name']);
+        }
+
+        if (isset($data['phone'])) {
+            $user->setPhone($data['phone']);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Профиль успешно обновлен',
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'name' => $user->getName(),
+                'phone' => $user->getPhone(),
+                'role' => in_array('ROLE_ADMIN', $user->getRoles()) ? 'ADMIN' : 'USER',
+                'roles' => $user->getRoles(),
             ]
         ]);
     }

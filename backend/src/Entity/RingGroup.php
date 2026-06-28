@@ -38,6 +38,9 @@ class RingGroup
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $materialRu = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $descriptionRu = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photoUrl = null;
 
@@ -141,6 +144,17 @@ class RingGroup
     public function setMaterialRu(?string $materialRu): static
     {
         $this->materialRu = $materialRu;
+        return $this;
+    }
+
+    public function getDescriptionRu(): ?string
+    {
+        return $this->descriptionRu;
+    }
+
+    public function setDescriptionRu(?string $descriptionRu): static
+    {
+        $this->descriptionRu = $descriptionRu;
         return $this;
     }
 

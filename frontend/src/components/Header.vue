@@ -41,6 +41,22 @@
                 </svg>
                 <span>Админ-панель</span>
               </router-link>
+              
+              <router-link 
+                to="/admin/chats" 
+                class="nav-link relative"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span>Чаты</span>
+                <span 
+                  v-if="chatStore.unreadCount > 0"
+                  class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                >
+                  {{ chatStore.unreadCount > 9 ? '9+' : chatStore.unreadCount }}
+                </span>
+              </router-link>
             </template>
           </nav>
         </div>
@@ -76,10 +92,16 @@
                 @click="toggleProfileMenu"
                 class="flex items-center gap-3 px-4 py-2.5 hover:bg-white/40 rounded-xl transition-all duration-300 backdrop-blur-sm"
               >
-                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md relative">
                   <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
+                  <span 
+                    v-if="!authStore.isAdmin && chatStore.unreadCount > 0"
+                    class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                  >
+                    {{ chatStore.unreadCount > 9 ? '9+' : chatStore.unreadCount }}
+                  </span>
                 </div>
               </button>
               
@@ -107,13 +129,19 @@
                     
                     <router-link 
                       to="/profile/chat" 
-                      class="menu-item"
+                      class="menu-item relative"
                       @click="closeProfileMenu"
                     >
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                       <span class="font-semibold">Чат</span>
+                      <span 
+                        v-if="chatStore.unreadCount > 0"
+                        class="ml-auto bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5"
+                      >
+                        {{ chatStore.unreadCount }}
+                      </span>
                     </router-link>
                   </div>
                   
@@ -152,16 +180,19 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
+import { useChatStore } from '@/stores/chat'
 import CartDropdown from './CartDropdown.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
+const chatStore = useChatStore()
 
 const isProfileMenuOpen = ref(false)
 const isCartMenuOpen = ref(false)
 const profileDropdown = ref(null)
 const cartDropdown = ref(null)
+const notificationPollingInterval = ref(null)
 
 const toggleProfileMenu = () => {
   isProfileMenuOpen.value = !isProfileMenuOpen.value
@@ -208,13 +239,26 @@ onMounted(() => {
   
   document.addEventListener('click', handleClickOutside)
   
-  // Загружаем корзину при монтировании компонента
+  // Загружаем корзину и непрочитанные сообщения при монтировании компонента
   if (authStore.isAuthenticated) {
     cartStore.fetchCart()
+    chatStore.fetchUnreadCount()
+    
+    // Запускаем polling для уведомлений каждые 20 секунд
+    notificationPollingInterval.value = setInterval(() => {
+      if (authStore.isAuthenticated) {
+        chatStore.fetchUnreadCount()
+      }
+    }, 20000) // 20 секунд
   }
   
   onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside)
+    
+    // Останавливаем polling при размонтировании
+    if (notificationPollingInterval.value) {
+      clearInterval(notificationPollingInterval.value)
+    }
   })
 })
 </script>

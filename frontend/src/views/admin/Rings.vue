@@ -5,7 +5,7 @@
         <div class="glass-card-strong rounded-3xl p-10 mb-8">
           <div class="flex justify-between items-center mb-6">
             <div>
-              <h1 class="heading-xl">Управление кольцами</h1>
+              <h1 class="heading-lg">Управление кольцами</h1>
               <p v-if="currentGroup" class="text-gray-600 mt-2">
                 Группа: {{ currentGroup.nameRu || currentGroup.typeCode }}
               </p>
@@ -68,12 +68,22 @@
 
       <div v-else class="glass-card rounded-3xl overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full">
+          <table class="w-full table-fixed">
+            <colgroup>
+              <col style="width: 80px;">
+              <col style="width: 200px;">
+              <col style="width: 100px;">
+              <col style="width: 200px;">
+              <col style="width: 120px;">
+              <col style="width: 140px;">
+              <col style="width: 120px;">
+              <col style="width: auto;">
+            </colgroup>
             <thead class="bg-white/60">
               <tr>
                 <th 
                   @click="sortBy('id')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     ID
@@ -84,7 +94,7 @@
                 </th>
                 <th 
                   @click="sortBy('partNumber')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Номер
@@ -95,7 +105,7 @@
                 </th>
                 <th 
                   @click="sortBy('group')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Группа
@@ -104,10 +114,10 @@
                     </svg>
                   </div>
                 </th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Размеры</th>
+                <th class="px-4 py-3 text-left text-base font-bold text-gray-900">Размеры</th>
                 <th 
                   @click="sortBy('price')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Цена
@@ -118,7 +128,7 @@
                 </th>
                 <th 
                   @click="sortBy('inStock')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     В наличии
@@ -129,7 +139,7 @@
                 </th>
                 <th 
                   @click="sortBy('photo')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Фото
@@ -138,7 +148,7 @@
                     </svg>
                   </div>
                 </th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Действия</th>
+                <th class="px-4 py-3 text-left text-base font-bold text-gray-900">Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -147,34 +157,112 @@
                 :key="ring.id"
                 class="border-t border-gray-200/50 hover:bg-white/40 transition-all"
               >
-                <td class="px-6 py-4 text-gray-900 font-semibold">{{ ring.id }}</td>
-                <td class="px-6 py-4 text-gray-900 font-bold">{{ ring.partNumber }}</td>
-                <td class="px-6 py-4 text-gray-700">
+                <td class="px-4 py-3 text-gray-900 font-semibold">{{ ring.id }}</td>
+                
+                <!-- Номер (Артикул) -->
+                <td class="px-4 py-3">
+                  <div v-if="editingField.ringId === ring.id && editingField.field === 'partNumber'">
+                    <input
+                      ref="editInput"
+                      v-model="editingField.value"
+                      type="text"
+                      class="input w-full text-gray-900 font-bold text-sm px-2 py-1"
+                      @keyup.enter="saveField(ring)"
+                      @keyup.esc="cancelEdit"
+                      autofocus
+                    />
+                  </div>
+                  <div
+                    v-else
+                    @click="startEdit(ring, 'partNumber', ring.partNumber)"
+                    class="text-gray-900 font-bold cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors overflow-hidden text-ellipsis"
+                    title="Нажмите для редактирования"
+                  >
+                    {{ ring.partNumber }}
+                  </div>
+                </td>
+                
+                <td class="px-4 py-3 text-gray-700">
                   {{ getGroupName(ring.ringGroup) }}
                 </td>
-                <td class="px-6 py-4">
-                  <div class="flex flex-wrap gap-1">
+                
+                <!-- Размеры -->
+                <td class="px-4 py-3">
+                  <div v-if="editingField.ringId === ring.id && editingField.field === 'dimensions'">
+                    <textarea
+                      v-model="editingField.value"
+                      rows="2"
+                      class="input w-full text-xs font-mono px-2 py-1"
+                      placeholder='["10.5"]'
+                      @keyup.esc="cancelEdit"
+                      autofocus
+                    ></textarea>
+                  </div>
+                  <div
+                    v-else
+                    @click="startEdit(ring, 'dimensions', JSON.stringify(ring.dimensions))"
+                    class="flex flex-wrap gap-1 cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors min-h-[2rem]"
+                    title="Нажмите для редактирования"
+                  >
                     <span
                       v-for="(dim, index) in ring.dimensions"
                       :key="index"
-                      class="px-2 py-1 bg-gray-200 rounded text-sm"
+                      class="px-2 py-1 bg-gray-200 rounded text-xs"
                     >
                       {{ dim || '—' }}
                     </span>
+                    <span v-if="!ring.dimensions || ring.dimensions.length === 0" class="text-gray-400">—</span>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-gray-900 font-semibold">
-                  {{ ring.price ? `${ring.price} ₽` : '—' }}
+                
+                <!-- Цена -->
+                <td class="px-4 py-3">
+                  <div v-if="editingField.ringId === ring.id && editingField.field === 'price'">
+                    <input
+                      v-model="editingField.value"
+                      type="number"
+                      step="0.01"
+                      class="input w-full text-gray-900 font-semibold text-sm px-2 py-1"
+                      @keyup.enter="saveField(ring)"
+                      @keyup.esc="cancelEdit"
+                      autofocus
+                    />
+                  </div>
+                  <div
+                    v-else
+                    @click="startEdit(ring, 'price', ring.price || '')"
+                    class="text-gray-900 font-semibold cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                    title="Нажмите для редактирования"
+                  >
+                    {{ ring.price ? `${ring.price} ₽` : '—' }}
+                  </div>
                 </td>
-                <td class="px-6 py-4">
-                  <span
-                    class="font-semibold"
+                
+                <!-- Наличие -->
+                <td class="px-4 py-3">
+                  <div v-if="editingField.ringId === ring.id && editingField.field === 'inStock'">
+                    <input
+                      v-model.number="editingField.value"
+                      type="number"
+                      min="0"
+                      class="input w-full font-semibold text-sm px-2 py-1"
+                      @keyup.enter="saveField(ring)"
+                      @keyup.esc="cancelEdit"
+                      autofocus
+                    />
+                  </div>
+                  <div
+                    v-else
+                    @click="startEdit(ring, 'inStock', ring.inStock)"
+                    class="font-semibold cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors"
                     :class="ring.inStock > 0 ? 'text-green-600' : 'text-gray-500'"
+                    title="Нажмите для редактирования"
                   >
                     {{ ring.inStock }}
-                  </span>
+                  </div>
                 </td>
-                <td class="px-6 py-4">
+                
+                <td class="px-4 py-3">
                   <div v-if="ring.photos && ring.photos.length > 0">
                     <img
                       :src="ring.photos[0]"
@@ -188,13 +276,39 @@
                   </div>
                   <span v-else class="text-gray-400">—</span>
                 </td>
-                <td class="px-6 py-4">
-                  <button
-                    @click="openEditModal(ring)"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-                  >
-                    Редактировать
-                  </button>
+                
+                <td class="px-4 py-3">
+                  <div class="flex gap-2 flex-wrap">
+                    <button
+                      v-if="editingField.ringId === ring.id"
+                      @click="saveField(ring)"
+                      class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                    >
+                      Сохранить
+                    </button>
+                    <button
+                      v-if="editingField.ringId === ring.id"
+                      @click="cancelEdit"
+                      class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors font-semibold"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      v-if="editingField.ringId !== ring.id"
+                      @click="openEditModal(ring)"
+                      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                    >
+                      Редактировать
+                    </button>
+                    <button
+                      v-if="editingField.ringId !== ring.id"
+                      @click="copyRing(ring)"
+                      class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                      title="Копировать кольцо"
+                    >
+                      Копировать
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -262,6 +376,11 @@ const groups = ref([])
 const loading = ref(true)
 const editModalVisible = ref(false)
 const selectedRing = ref(null)
+const editingField = ref({
+  ringId: null,
+  field: null,
+  value: null
+})
 const photoGalleryVisible = ref(false)
 const galleryPhotos = ref([])
 const galleryTitle = ref('')
@@ -402,6 +521,100 @@ function getGroupName(groupId) {
 function openEditModal(ring) {
   selectedRing.value = ring
   editModalVisible.value = true
+}
+
+async function copyRing(ring) {
+  if (!confirm(`Скопировать кольцо "${ring.partNumber}"?`)) {
+    return
+  }
+  
+  try {
+    const ringData = {
+      partNumber: ring.partNumber + ' (копия)',
+      dimensions: ring.dimensions || [],
+      price: ring.price || null,
+      inStock: ring.inStock || 0,
+      photos: ring.photos || [],
+      isHidden: ring.isHidden || false,
+      ringGroup: ring.ringGroup
+    }
+    
+    await apiClient.post('/api/admin/rings', ringData)
+    await fetchRings()
+    alert('Кольцо успешно скопировано')
+  } catch (error) {
+    console.error('Ошибка при копировании кольца:', error)
+    alert('Ошибка при копировании кольца')
+  }
+}
+
+function startEdit(ring, field, value) {
+  editingField.value = {
+    ringId: ring.id,
+    field: field,
+    value: value
+  }
+}
+
+function cancelEdit() {
+  editingField.value = {
+    ringId: null,
+    field: null,
+    value: null
+  }
+}
+
+async function saveField(ring) {
+  const field = editingField.value.field
+  const value = editingField.value.value
+  
+  try {
+    const updateData = {}
+    
+    if (field === 'partNumber') {
+      if (!value || value.trim() === '') {
+        alert('Номер не может быть пустым')
+        return
+      }
+      updateData.partNumber = value.trim()
+    } else if (field === 'dimensions') {
+      try {
+        const parsed = JSON.parse(value)
+        if (!Array.isArray(parsed)) {
+          alert('Размеры должны быть массивом')
+          return
+        }
+        updateData.dimensions = parsed
+      } catch (e) {
+        alert('Неверный формат JSON для размеров')
+        return
+      }
+    } else if (field === 'price') {
+      updateData.price = value === '' ? null : value
+    } else if (field === 'inStock') {
+      if (value < 0) {
+        alert('Количество не может быть отрицательным')
+        return
+      }
+      updateData.inStock = parseInt(value) || 0
+    }
+    
+    await apiClient.patch(`/api/admin/rings/${ring.id}`, updateData)
+    
+    // Обновляем данные локально без перезагрузки таблицы
+    const ringIndex = rings.value.findIndex(r => r.id === ring.id)
+    if (ringIndex !== -1) {
+      rings.value[ringIndex] = {
+        ...rings.value[ringIndex],
+        ...updateData
+      }
+    }
+    
+    cancelEdit()
+  } catch (error) {
+    console.error('Ошибка при сохранении:', error)
+    alert('Ошибка при сохранении изменений')
+  }
 }
 
 function closeEditModal() {

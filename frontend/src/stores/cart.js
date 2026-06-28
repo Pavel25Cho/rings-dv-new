@@ -122,6 +122,19 @@ export const useCartStore = defineStore('cart', {
 
     clearLocalCart() {
       this.cart = []
+    },
+
+    async createOrder(items) {
+      const { useChatStore } = await import('./chat')
+      const chatStore = useChatStore()
+      
+      const result = await chatStore.createOrder(items)
+      
+      if (result.success) {
+        this.cart = []
+      }
+      
+      return result
     }
   }
 })

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import apiClient from '@/config/axios'
 import { useCartStore } from './cart'
+import { useChatStore } from './chat'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -40,6 +41,12 @@ export const useAuthStore = defineStore('auth', {
         const response = await apiClient.get('/api/auth/me')
         this.user = response.data.user
         this.initialized = true
+        
+        // Загружаем корзину и уведомления после успешной авторизации
+        const cartStore = useCartStore()
+        const chatStore = useChatStore()
+        cartStore.fetchCart()
+        chatStore.fetchUnreadCount()
       } catch (error) {
         console.error('Failed to fetch user:', error)
         this.user = null
@@ -63,9 +70,11 @@ export const useAuthStore = defineStore('auth', {
         this.setUser(response.data.user)
         this.initialized = true
         
-        // Загружаем корзину после успешного входа
+        // Загружаем корзину и уведомления после успешного входа
         const cartStore = useCartStore()
+        const chatStore = useChatStore()
         cartStore.fetchCart()
+        chatStore.fetchUnreadCount()
         
         return response.data
       } catch (error) {
@@ -104,9 +113,12 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('token')
         this.loading = false
         
-        // Очищаем корзину при выходе
+        // Очищаем корзину и чаты при выходе
         const cartStore = useCartStore()
+        const chatStore = useChatStore()
         cartStore.clearLocalCart()
+        chatStore.clearMessages()
+        chatStore.unreadCount = 0
       }
     },
 
@@ -115,6 +127,19 @@ export const useAuthStore = defineStore('auth', {
         await this.fetchUser()
       } else {
         this.initialized = true
+      }
+    },
+
+    async updateProfile(profileData) {
+      this.loading = true
+      try {
+        const response = await apiClient.put('/api/auth/profile', profileData)
+        this.user = response.data.user
+        return response.data
+      } catch (error) {
+        throw error
+      } finally {
+        this.loading = false
       }
     }
   }

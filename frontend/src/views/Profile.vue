@@ -2,7 +2,7 @@
   <div class="px-4 md:px-8 py-8">
     <div class="max-w-5xl mx-auto">
       <div class="glass-card-strong rounded-3xl p-10 mb-8">
-        <h1 class="heading-xl">Личный кабинет</h1>
+        <h1 class="heading-lg">Личный кабинет</h1>
       </div>
 
       <div class="glass-card-strong rounded-3xl overflow-hidden">
@@ -48,7 +48,7 @@
           </router-link>
         </div>
 
-        <div class="p-10">
+        <div :class="isActiveTab('/profile/chat') ? 'min-h-[400px]' : 'p-10'">
           <router-view />
         </div>
       </div>

@@ -67,23 +67,23 @@
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-gray-900 mb-2">Материал (EN)</label>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Материал</label>
                 <input
                   v-model="formData.materialEn"
                   type="text"
                   class="input w-full"
-                  placeholder="Введите материал на английском"
+                  placeholder="Введите материал"
                 />
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-gray-900 mb-2">Материал (RU)</label>
-                <input
-                  v-model="formData.materialRu"
-                  type="text"
+                <label class="block text-sm font-bold text-gray-900 mb-2">Описание</label>
+                <textarea
+                  v-model="formData.descriptionRu"
+                  rows="3"
                   class="input w-full"
-                  placeholder="Введите материал на русском"
-                />
+                  placeholder="Введите описание"
+                ></textarea>
               </div>
 
               <div>
@@ -209,6 +209,7 @@ const formData = ref({
   brand: '',
   materialEn: '',
   materialRu: '',
+  descriptionRu: '',
   photoUrl: '',
   dimensionsPhotoUrl: '',
   columnNames: null,
@@ -302,6 +303,7 @@ watch(() => props.visible, (newVal) => {
       brand: props.group.brand || '',
       materialEn: props.group.materialEn || '',
       materialRu: props.group.materialRu || '',
+      descriptionRu: props.group.descriptionRu || '',
       photoUrl: props.group.photoUrl || '',
       dimensionsPhotoUrl: props.group.dimensionsPhotoUrl || '',
       columnNames: props.group.columnNames || null,

@@ -4,7 +4,7 @@
       <div class="max-w-7xl mx-auto">
         <div class="glass-card-strong rounded-3xl p-10 mb-8">
           <div class="flex justify-between items-center mb-6">
-            <h1 class="heading-xl">Управление группами</h1>
+            <h1 class="heading-lg">Управление группами</h1>
             <router-link
               to="/admin"
               class="px-5 py-2.5 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors font-semibold"
@@ -50,7 +50,7 @@
               <tr>
                 <th 
                   @click="sortBy('id')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     ID
@@ -61,7 +61,7 @@
                 </th>
                 <th 
                   @click="sortBy('name')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Название
@@ -72,7 +72,7 @@
                 </th>
                 <th 
                   @click="sortBy('typeCode')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Тип
@@ -83,7 +83,7 @@
                 </th>
                 <th 
                   @click="sortBy('brand')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Бренд
@@ -94,7 +94,7 @@
                 </th>
                 <th 
                   @click="sortBy('photo')"
-                  class="px-6 py-4 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
+                  class="px-4 py-3 text-left text-base font-bold text-gray-900 cursor-pointer hover:bg-white/80 transition-colors select-none"
                 >
                   <div class="flex items-center gap-2">
                     Фото
@@ -103,7 +103,7 @@
                     </svg>
                   </div>
                 </th>
-                <th class="px-6 py-4 text-left text-base font-bold text-gray-900">Действия</th>
+                <th class="px-4 py-3 text-left text-base font-bold text-gray-900">Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -112,14 +112,14 @@
                 :key="group.id"
                 class="border-t border-gray-200/50 hover:bg-white/40 transition-all"
               >
-                <td class="px-6 py-4 text-gray-900 font-semibold">{{ group.id }}</td>
-                <td class="px-6 py-4">
+                <td class="px-4 py-3 text-gray-900 font-semibold">{{ group.id }}</td>
+                <td class="px-4 py-3">
                   <div class="font-bold text-gray-900">{{ group.nameRu || '—' }}</div>
                   <div v-if="group.nameEn" class="text-sm text-gray-600 mt-1">{{ group.nameEn }}</div>
                 </td>
-                <td class="px-6 py-4 text-gray-700 font-medium">{{ group.typeCode }}</td>
-                <td class="px-6 py-4 text-gray-700">{{ group.brand || '—' }}</td>
-                <td class="px-6 py-4">
+                <td class="px-4 py-3 text-gray-700 font-medium">{{ group.typeCode }}</td>
+                <td class="px-4 py-3 text-gray-700">{{ group.brand || '—' }}</td>
+                <td class="px-4 py-3">
                   <div class="flex gap-2">
                     <img
                       v-if="group.photoUrl"
@@ -138,7 +138,7 @@
                     <span v-if="!group.photoUrl && !group.dimensionsPhotoUrl" class="text-gray-400">—</span>
                   </div>
                 </td>
-                <td class="px-6 py-4">
+                <td class="px-4 py-3">
                   <div class="flex gap-2">
                     <button
                       @click="openEditModal(group)"

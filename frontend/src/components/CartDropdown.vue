@@ -109,6 +109,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useCartStore } from '@/stores/cart'
+import { useChatStore } from '@/stores/chat'
 
 defineProps({
   visible: {
@@ -120,6 +121,7 @@ defineProps({
 const emit = defineEmits(['close'])
 
 const cartStore = useCartStore()
+const chatStore = useChatStore()
 
 const cartItems = computed(() => cartStore.cartItems)
 const cartCount = computed(() => cartStore.cartCount)
@@ -169,10 +171,24 @@ const handleClearCart = async () => {
   }
 }
 
-const handleCheckout = () => {
-  // TODO: Реализовать переход к оформлению заказа
-  console.log('Переход к оформлению заказа')
-  emit('close')
+const handleCheckout = async () => {
+  if (!confirm('Оформить заказ? Все товары из корзины будут добавлены в заказ.')) {
+    return
+  }
+
+  const items = cartItems.value.map(item => ({
+    ringId: item.ringId,
+    quantity: item.quantity
+  }))
+
+  const result = await cartStore.createOrder(items)
+  
+  if (result.success) {
+    emit('close')
+    window.location.href = '/profile/chat'
+  } else {
+    alert(result.message || 'Не удалось создать заказ')
+  }
 }
 </script>
 

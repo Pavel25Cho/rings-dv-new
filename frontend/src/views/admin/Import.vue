@@ -1,9 +1,9 @@
 <template>
   <div class="px-4 md:px-8 py-8">
     <div class="max-w-4xl mx-auto">
-      <div class="glass-card rounded-3xl p-10 mb-8">
+      <div class="glass-card rounded-3xl p-8 mb-8">
         <div class="flex items-center justify-between mb-8">
-          <h1 class="heading-xl">Импорт данных из Excel</h1>
+          <h1 class="heading-lg">Импорт данных из Excel</h1>
           <router-link 
             to="/admin"
             class="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors font-bold"

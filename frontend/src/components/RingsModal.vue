@@ -27,13 +27,38 @@
               </button>
             </div>
 
-            <div v-if="group?.dimensionsPhotoUrl" class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-center">
-              <img
-                :src="group.dimensionsPhotoUrl"
-                alt="Размерная схема"
-                class="max-w-2xl max-h-56 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-                @click="openImageModal(group.dimensionsPhotoUrl, 'Размерная схема')"
-              />
+            <div v-if="group?.descriptionRu || group?.dimensionsPhotoUrl" class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <!-- Только описание -->
+              <div v-if="group?.descriptionRu && !group?.dimensionsPhotoUrl" class="flex justify-center">
+                <div class="max-w-2xl text-gray-700 whitespace-pre-wrap">
+                  {{ group.descriptionRu }}
+                </div>
+              </div>
+
+              <!-- Только размерная схема -->
+              <div v-else-if="!group?.descriptionRu && group?.dimensionsPhotoUrl" class="flex justify-center">
+                <img
+                  :src="group.dimensionsPhotoUrl"
+                  alt="Размерная схема"
+                  class="max-w-2xl max-h-56 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                  @click="openImageModal(group.dimensionsPhotoUrl, 'Размерная схема')"
+                />
+              </div>
+
+              <!-- Описание и размерная схема -->
+              <div v-else class="flex gap-6 items-start">
+                <div class="flex-1 text-gray-700 whitespace-pre-wrap">
+                  {{ group.descriptionRu }}
+                </div>
+                <div class="flex-1 flex justify-center">
+                  <img
+                    :src="group.dimensionsPhotoUrl"
+                    alt="Размерная схема"
+                    class="max-w-full max-h-56 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                    @click="openImageModal(group.dimensionsPhotoUrl, 'Размерная схема')"
+                  />
+                </div>
+              </div>
             </div>
 
             <div class="flex-1 flex flex-col overflow-hidden">

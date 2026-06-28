@@ -34,6 +34,9 @@ class ChatMessage
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\OneToOne(mappedBy: 'message', targetEntity: Order::class, cascade: ['persist', 'remove'])]
+    private ?Order $order = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -91,5 +94,25 @@ class ChatMessage
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
+    }
+
+    public function getOrder(): ?Order
+    {
+        return $this->order;
+    }
+
+    public function setOrder(?Order $order): static
+    {
+        if ($order === null && $this->order !== null) {
+            $this->order->setMessage(null);
+        }
+
+        if ($order !== null && $order->getMessage() !== $this) {
+            $order->setMessage($this);
+        }
+
+        $this->order = $order;
+
+        return $this;
     }
 }

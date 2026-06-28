@@ -89,7 +89,7 @@
     background-clip: text;
   }
   
-  .heading-xl {
+  .heading-lg {
     @apply text-5xl font-bold text-gray-900 leading-tight;
   }
   

@@ -1,17 +1,106 @@
 <template>
-  <div>
-    <div class="text-center py-16">
-      <svg class="w-20 h-20 mx-auto mb-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-      </svg>
-      <h3 class="heading-md mb-3">Чат с администратором</h3>
-      <p class="text-body">Функционал чата будет реализован в ближайшее время</p>
-    </div>
+  <div class="h-full">
+    <ChatWindow
+      ref="chatWindow"
+      :chat="chatStore.myChat"
+      :messages="messages"
+      :loading="loading"
+      :sending-message="sendingMessage"
+      :show-header="true"
+      chat-title="Администратор"
+      chat-subtitle="Поддержка"
+      empty-title="Чат с администратором"
+      empty-message="У вас пока нет активного чата. Чат будет создан автоматически при оформлении заказа."
+      @send-message="handleSendMessage"
+      @order-updated="handleOrderUpdated"
+    />
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useChatStore } from '@/stores/chat'
 import { useAuthStore } from '@/stores/auth'
+import ChatWindow from '@/components/ChatWindow.vue'
 
+const chatStore = useChatStore()
 const authStore = useAuthStore()
+
+const chatWindow = ref(null)
+const loading = ref(true)
+const pollingInterval = ref(null)
+
+const messages = computed(() => chatStore.messages)
+const sendingMessage = computed(() => chatStore.sendingMessage)
+
+const loadChat = async () => {
+  loading.value = true
+  try {
+    await chatStore.fetchMyChat()
+    
+    if (chatStore.myChat) {
+      await chatStore.fetchMessages(chatStore.myChat.id)
+      await chatStore.markAsRead(chatStore.myChat.id)
+      
+      // Ждем отрисовки и прокручиваем вниз
+      await nextTick()
+      setTimeout(() => {
+        chatWindow.value?.scrollToBottom()
+      }, 100)
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки чата:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSendMessage = async (text) => {
+  if (!chatStore.myChat) return
+  
+  const result = await chatStore.sendMessage(chatStore.myChat.id, text)
+  
+  if (!result.success) {
+    alert(result.message || 'Не удалось отправить сообщение')
+  }
+}
+
+const handleOrderUpdated = (updatedOrder) => {
+  // Обновляем заказ в сообщениях без перезагрузки
+  chatStore.updateOrderInMessages(updatedOrder)
+}
+
+const startPolling = () => {
+  stopPolling()
+  
+  pollingInterval.value = setInterval(async () => {
+    if (chatStore.myChat) {
+      const oldLength = messages.value.length
+      await chatStore.fetchMessages(chatStore.myChat.id)
+      
+      if (messages.value.length > oldLength) {
+        await nextTick()
+        chatWindow.value?.scrollToBottom()
+      }
+      
+      await chatStore.fetchUnreadCount()
+    }
+  }, 15000)
+}
+
+const stopPolling = () => {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+    pollingInterval.value = null
+  }
+}
+
+onMounted(() => {
+  loadChat()
+  startPolling()
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
 </script>

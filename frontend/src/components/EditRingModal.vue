@@ -87,13 +87,51 @@
                     <div
                       v-for="(photo, index) in formData.photos"
                       :key="index"
-                      class="relative group"
+                      class="relative group cursor-move"
+                      draggable="true"
+                      @dragstart="handleDragStart(index)"
+                      @dragover.prevent="handleDragOver(index)"
+                      @drop="handleDrop(index)"
+                      @dragend="handleDragEnd"
+                      :class="{ 'opacity-50': draggedIndex === index, 'ring-2 ring-purple-500': dragOverIndex === index }"
                     >
                       <img
                         :src="photo"
                         alt="Фото кольца"
                         class="w-full h-32 object-contain rounded-lg border-2 border-gray-200"
                       />
+                      
+                      <!-- Номер фотографии -->
+                      <div class="absolute top-2 left-2 bg-purple-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                        {{ index + 1 }}
+                      </div>
+                      
+                      <!-- Кнопки управления -->
+                      <div class="absolute bottom-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          v-if="index > 0"
+                          type="button"
+                          @click="movePhotoUp(index)"
+                          class="p-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          title="Переместить влево"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button
+                          v-if="index < formData.photos.length - 1"
+                          type="button"
+                          @click="movePhotoDown(index)"
+                          class="p-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          title="Переместить вправо"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                      
                       <button
                         type="button"
                         @click="removePhoto(index)"
@@ -108,7 +146,7 @@
                   </div>
                   
                   <p v-if="formData.photos && formData.photos.length > 0" class="text-sm text-gray-600">
-                    Загружено фотографий: {{ formData.photos.length }}
+                    Загружено фотографий: {{ formData.photos.length }}. Используйте стрелки или перетаскивайте фото для изменения порядка.
                   </p>
                 </div>
               </div>
@@ -179,6 +217,8 @@ const dimensionsString = ref('')
 const dimensionsError = ref('')
 const saving = ref(false)
 const uploading = ref(false)
+const draggedIndex = ref(null)
+const dragOverIndex = ref(null)
 
 const closeModal = () => {
   emit('close')
@@ -224,6 +264,51 @@ const handlePhotoUpload = async (event) => {
 
 const removePhoto = (index) => {
   formData.value.photos.splice(index, 1)
+}
+
+const movePhotoUp = (index) => {
+  if (index > 0) {
+    const photos = [...formData.value.photos]
+    const temp = photos[index]
+    photos[index] = photos[index - 1]
+    photos[index - 1] = temp
+    formData.value.photos = photos
+  }
+}
+
+const movePhotoDown = (index) => {
+  if (index < formData.value.photos.length - 1) {
+    const photos = [...formData.value.photos]
+    const temp = photos[index]
+    photos[index] = photos[index + 1]
+    photos[index + 1] = temp
+    formData.value.photos = photos
+  }
+}
+
+const handleDragStart = (index) => {
+  draggedIndex.value = index
+}
+
+const handleDragOver = (index) => {
+  dragOverIndex.value = index
+}
+
+const handleDrop = (index) => {
+  if (draggedIndex.value !== null && draggedIndex.value !== index) {
+    const photos = [...formData.value.photos]
+    const draggedPhoto = photos[draggedIndex.value]
+    photos.splice(draggedIndex.value, 1)
+    photos.splice(index, 0, draggedPhoto)
+    formData.value.photos = photos
+  }
+  draggedIndex.value = null
+  dragOverIndex.value = null
+}
+
+const handleDragEnd = () => {
+  draggedIndex.value = null
+  dragOverIndex.value = null
 }
 
 const saveRing = async () => {

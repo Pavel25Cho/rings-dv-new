@@ -75,6 +75,12 @@ const routes = [
     name: 'AdminImport',
     component: () => import('@/views/admin/Import.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/chats',
+    name: 'AdminChats',
+    component: () => import('@/views/admin/Chats.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 

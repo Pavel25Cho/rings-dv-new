@@ -3,6 +3,8 @@
 namespace App\Controller\Api;
 
 use App\Entity\Chat;
+use App\Entity\Order;
+use App\Entity\OrderItem;
 use App\Entity\Ring;
 use App\Entity\RingGroup;
 use App\Entity\User;
@@ -113,6 +115,10 @@ class AdminController extends AbstractController
             $group->setMaterialRu($data['materialRu']);
         }
         
+        if (isset($data['descriptionRu'])) {
+            $group->setDescriptionRu($data['descriptionRu']);
+        }
+        
         if (isset($data['photoUrl'])) {
             $group->setPhotoUrl($data['photoUrl']);
         }
@@ -170,6 +176,59 @@ class AdminController extends AbstractController
         }, $rings);
         
         return $this->json($ringsData);
+    }
+
+    #[Route('/rings', name: 'ring_create', methods: ['POST'])]
+    public function createRing(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!isset($data['partNumber']) || !isset($data['ringGroup'])) {
+            return $this->json(['error' => 'Обязательные поля: partNumber, ringGroup'], 400);
+        }
+
+        $ringGroup = $this->entityManager->getRepository(RingGroup::class)->find($data['ringGroup']);
+        if (!$ringGroup) {
+            return $this->json(['error' => 'Группа не найдена'], 404);
+        }
+
+        $ring = new Ring();
+        $ring->setPartNumber($data['partNumber']);
+        $ring->setRingGroup($ringGroup);
+        
+        if (isset($data['dimensions'])) {
+            $ring->setDimensions($data['dimensions']);
+        }
+        
+        if (isset($data['inStock'])) {
+            $ring->setInStock((int)$data['inStock']);
+        }
+        
+        if (isset($data['price'])) {
+            $ring->setPrice($data['price']);
+        }
+        
+        if (isset($data['photos'])) {
+            $ring->setPhotos($data['photos']);
+        }
+        
+        if (isset($data['isHidden'])) {
+            $ring->setIsHidden($data['isHidden']);
+        }
+        
+        $this->entityManager->persist($ring);
+        $this->entityManager->flush();
+        
+        return $this->json([
+            'id' => $ring->getId(),
+            'partNumber' => $ring->getPartNumber(),
+            'dimensions' => $ring->getDimensions(),
+            'inStock' => $ring->getInStock(),
+            'price' => $ring->getPrice(),
+            'photos' => $ring->getPhotos(),
+            'isHidden' => $ring->isHidden(),
+            'ringGroup' => $ring->getRingGroup()?->getId(),
+        ], 201);
     }
 
     #[Route('/rings/{id}', name: 'ring_get', methods: ['GET'])]
@@ -252,32 +311,33 @@ class AdminController extends AbstractController
         return $this->json($clients);
     }
 
-    #[Route('/catalog/delete-all', name: 'catalog_delete_all', methods: ['DELETE'])]
-    public function deleteAllCatalog(): JsonResponse
-    {
-        try {
-            // Очищаем корзины всех пользователей
-            $this->entityManager->createQuery('UPDATE App\Entity\User u SET u.cart = :emptyCart')
-                ->setParameter('emptyCart', json_encode([]))
-                ->execute();
+    // #[Route('/catalog/delete-all', name: 'catalog_delete_all', methods: ['DELETE'])]
+    // public function deleteAllCatalog(): JsonResponse
+    // {
+        
+    //     try {
+    //         // Очищаем корзины всех пользователей
+    //         $this->entityManager->createQuery('UPDATE App\Entity\User u SET u.cart = :emptyCart')
+    //             ->setParameter('emptyCart', json_encode([]))
+    //             ->execute();
             
-            // Удаляем все кольца
-            $this->entityManager->createQuery('DELETE FROM App\Entity\Ring r')->execute();
+    //         // Удаляем все кольца
+    //         $this->entityManager->createQuery('DELETE FROM App\Entity\Ring r')->execute();
             
-            // Удаляем все группы
-            $this->entityManager->createQuery('DELETE FROM App\Entity\RingGroup rg')->execute();
+    //         // Удаляем все группы
+    //         $this->entityManager->createQuery('DELETE FROM App\Entity\RingGroup rg')->execute();
             
-            return $this->json([
-                'success' => true,
-                'message' => 'Весь каталог успешно удален, корзины пользователей очищены'
-            ]);
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Ошибка при удалении каталога: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return $this->json([
+    //             'success' => true,
+    //             'message' => 'Весь каталог успешно удален, корзины пользователей очищены'
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return $this->json([
+    //             'success' => false,
+    //             'message' => 'Ошибка при удалении каталога: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     #[Route('/upload-image', name: 'upload_image', methods: ['POST'])]
     public function uploadImage(Request $request): JsonResponse
@@ -332,5 +392,199 @@ class AdminController extends AbstractController
                 'error' => 'Ошибка при загрузке файла: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    #[Route('/orders/confirm/{id}', name: 'order_confirm', methods: ['POST'])]
+    public function confirmOrder(int $id): JsonResponse
+    {
+        $order = $this->entityManager->getRepository(Order::class)->find($id);
+        
+        if (!$order) {
+            return $this->json(['error' => 'Заказ не найден'], 404);
+        }
+
+        if (!$order->isPending()) {
+            return $this->json(['error' => 'Заказ уже обработан'], 400);
+        }
+
+        try {
+            // Вычитаем количество из каталога
+            foreach ($order->getItems() as $item) {
+                $ring = $item->getRing();
+                if ($ring) {
+                    $newStock = $ring->getInStock() - $item->getQuantity();
+                    if ($newStock < 0) {
+                        return $this->json([
+                            'error' => "Недостаточно товара '{$ring->getPartNumber}' на складе"
+                        ], 400);
+                    }
+                    $ring->setInStock($newStock);
+                }
+            }
+
+            $order->confirm();
+            $this->entityManager->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Заказ подтвержден',
+                'order' => $this->serializeOrderForAdmin($order)
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Ошибка при подтверждении заказа: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/orders/cancel/{id}', name: 'order_cancel', methods: ['POST'])]
+    public function cancelOrder(int $id): JsonResponse
+    {
+        $order = $this->entityManager->getRepository(Order::class)->find($id);
+        
+        if (!$order) {
+            return $this->json(['error' => 'Заказ не найден'], 404);
+        }
+
+        if ($order->isCancelled()) {
+            return $this->json(['error' => 'Заказ уже отменен'], 400);
+        }
+
+        try {
+            // Если заказ был подтвержден, возвращаем количество в каталог
+            if ($order->isConfirmed()) {
+                foreach ($order->getItems() as $item) {
+                    $ring = $item->getRing();
+                    if ($ring) {
+                        $ring->setInStock($ring->getInStock() + $item->getQuantity());
+                    }
+                }
+            }
+
+            $order->cancel();
+            $this->entityManager->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Заказ отменен',
+                'order' => $this->serializeOrderForAdmin($order)
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Ошибка при отмене заказа: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/orders/update-item/{itemId}', name: 'order_update_item', methods: ['POST'])]
+    public function updateOrderItem(int $itemId, Request $request): JsonResponse
+    {
+        $orderItem = $this->entityManager->getRepository(OrderItem::class)->find($itemId);
+        
+        if (!$orderItem) {
+            return $this->json(['error' => 'Товар не найден'], 404);
+        }
+
+        $order = $orderItem->getOrder();
+        if (!$order->isPending()) {
+            return $this->json(['error' => 'Можно изменять только неподтвержденные заказы'], 400);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        
+        if (!isset($data['quantity']) || $data['quantity'] < 1) {
+            return $this->json(['error' => 'Неверное количество'], 400);
+        }
+
+        $ring = $orderItem->getRing();
+        if ($ring && $ring->getInStock() < $data['quantity']) {
+            return $this->json([
+                'error' => "Недостаточно товара на складе. Доступно: {$ring->getInStock()}"
+            ], 400);
+        }
+
+        try {
+            $orderItem->setQuantity((int)$data['quantity']);
+            $order->calculateTotalPrice();
+            $this->entityManager->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Количество обновлено',
+                'order' => $this->serializeOrderForAdmin($order)
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Ошибка при обновлении: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/orders/check-stock/{id}', name: 'order_check_stock', methods: ['GET'])]
+    public function checkOrderStock(int $id): JsonResponse
+    {
+        $order = $this->entityManager->getRepository(Order::class)->find($id);
+        
+        if (!$order) {
+            return $this->json(['error' => 'Заказ не найден'], 404);
+        }
+
+        $stockInfo = [];
+        $hasIssues = false;
+
+        foreach ($order->getItems() as $item) {
+            $ring = $item->getRing();
+            $available = $ring ? $ring->getInStock() : 0;
+            $needed = $item->getQuantity();
+            $isAvailable = $available >= $needed;
+
+            if (!$isAvailable) {
+                $hasIssues = true;
+            }
+
+            $stockInfo[] = [
+                'partNumber' => $item->getPartNumber(),
+                'needed' => $needed,
+                'available' => $available,
+                'isAvailable' => $isAvailable
+            ];
+        }
+
+        return $this->json([
+            'success' => true,
+            'hasIssues' => $hasIssues,
+            'items' => $stockInfo
+        ]);
+    }
+
+    private function serializeOrderForAdmin(Order $order): array
+    {
+        $items = [];
+        foreach ($order->getItems() as $item) {
+            $ring = $item->getRing();
+            $photos = $ring ? $ring->getPhotos() : [];
+            
+            $items[] = [
+                'id' => $item->getId(),
+                'ringId' => $ring?->getId(),
+                'partNumber' => $item->getPartNumber(),
+                'brand' => $item->getBrand(),
+                'quantity' => $item->getQuantity(),
+                'price' => $item->getPrice(),
+                'totalPrice' => $item->getTotalPrice(),
+                'inStock' => $ring?->getInStock(),
+                'photoUrl' => !empty($photos) ? $photos[0] : null
+            ];
+        }
+
+        return [
+            'id' => $order->getId(),
+            'status' => $order->getStatus(),
+            'totalPrice' => $order->getTotalPrice(),
+            'items' => $items,
+            'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+            'confirmedAt' => $order->getConfirmedAt()?->format('Y-m-d H:i:s'),
+            'cancelledAt' => $order->getCancelledAt()?->format('Y-m-d H:i:s')
+        ];
     }
 }

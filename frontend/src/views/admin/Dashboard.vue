@@ -1,8 +1,8 @@
 <template>
   <div class="px-4 md:px-8 py-8">
     <div class="max-w-7xl mx-auto">
-      <div class="glass-card rounded-3xl p-10 mb-8">
-        <h1 class="heading-xl">Админ панель</h1>
+      <div class="glass-card rounded-3xl p-8 mb-8">
+        <h1 class="heading-lg">Админ панель</h1>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -102,13 +102,6 @@
             </svg>
             <span>Открыть чаты</span>
           </router-link>
-          
-          <button
-            @click="confirmDeleteCatalog"
-            class="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-bold"
-          >
-            Удалить весь каталог
-          </button>
         </div>
         
       </div>
@@ -143,34 +136,6 @@ const goToGroups = () => {
 
 const goToRings = () => {
   router.push({ name: 'AdminRings' })
-}
-
-const confirmDeleteCatalog = async () => {
-  const confirmed = window.confirm(
-    'ВНИМАНИЕ! Вы действительно хотите удалить ВСЕ группы и кольца из каталога? Это действие НЕВОЗМОЖНО отменить!'
-  )
-  
-  if (!confirmed) return
-  
-  const doubleConfirm = window.confirm(
-    'Это последнее предупреждение! После удаления восстановить данные будет невозможно. Продолжить?'
-  )
-  
-  if (!doubleConfirm) return
-  
-  try {
-    await apiClient.delete('/api/admin/catalog/delete-all')
-    alert('Каталог успешно удален')
-    
-    // Обновляем статистику
-    stats.value.groupsTotal = 0
-    stats.value.groupsWithStock = 0
-    stats.value.ringsTotal = 0
-    stats.value.ringsWithStock = 0
-  } catch (error) {
-    console.error('Ошибка удаления каталога:', error)
-    alert('Ошибка при удалении каталога')
-  }
 }
 
 onMounted(async () => {
