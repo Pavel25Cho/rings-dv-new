@@ -80,6 +80,68 @@ class AdminController extends AbstractController
         return $this->json($group);
     }
 
+    #[Route('/groups', name: 'group_create', methods: ['POST'])]
+    public function createGroup(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        $group = new RingGroup();
+        
+        if (isset($data['nameRu'])) {
+            $group->setNameRu($data['nameRu']);
+        }
+        
+        if (isset($data['nameEn'])) {
+            $group->setNameEn($data['nameEn']);
+        }
+        
+        if (isset($data['typeCode'])) {
+            $group->setTypeCode($data['typeCode']);
+        }
+        
+        if (isset($data['brand'])) {
+            $group->setBrand($data['brand']);
+        }
+        
+        if (isset($data['materialEn'])) {
+            $group->setMaterialEn($data['materialEn']);
+        }
+        
+        if (isset($data['materialRu'])) {
+            $group->setMaterialRu($data['materialRu']);
+        }
+        
+        if (isset($data['descriptionRu'])) {
+            $group->setDescriptionRu($data['descriptionRu']);
+        }
+        
+        if (isset($data['photoUrl'])) {
+            $group->setPhotoUrl($data['photoUrl']);
+        }
+        
+        if (isset($data['dimensionsPhotoUrl'])) {
+            $group->setDimensionsPhotoUrl($data['dimensionsPhotoUrl']);
+        }
+        
+        if (isset($data['columnNames'])) {
+            if (is_array($data['columnNames'])) {
+                // Переиндексируем массив, чтобы убедиться, что ключи последовательные с 0
+                $group->setColumnNames(array_values($data['columnNames']));
+            } else {
+                $group->setColumnNames($data['columnNames']);
+            }
+        }
+        
+        if (isset($data['isHidden'])) {
+            $group->setIsHidden($data['isHidden']);
+        }
+        
+        $this->entityManager->persist($group);
+        $this->entityManager->flush();
+        
+        return $this->json($group, 201);
+    }
+
     #[Route('/groups/{id}', name: 'group_update', methods: ['PUT', 'PATCH'])]
     public function updateGroup(int $id, Request $request): JsonResponse
     {
@@ -128,7 +190,12 @@ class AdminController extends AbstractController
         }
         
         if (isset($data['columnNames'])) {
-            $group->setColumnNames($data['columnNames']);
+            if (is_array($data['columnNames'])) {
+                // Переиндексируем массив, чтобы убедиться, что ключи последовательные с 0
+                $group->setColumnNames(array_values($data['columnNames']));
+            } else {
+                $group->setColumnNames($data['columnNames']);
+            }
         }
         
         if (isset($data['isHidden'])) {
@@ -196,8 +263,9 @@ class AdminController extends AbstractController
         $ring->setPartNumber($data['partNumber']);
         $ring->setRingGroup($ringGroup);
         
-        if (isset($data['dimensions'])) {
-            $ring->setDimensions($data['dimensions']);
+        if (isset($data['dimensions']) && is_array($data['dimensions'])) {
+            // Переиндексируем массив, чтобы убедиться, что ключи последовательные с 0
+            $ring->setDimensions(array_values($data['dimensions']));
         }
         
         if (isset($data['inStock'])) {
@@ -258,8 +326,9 @@ class AdminController extends AbstractController
             $ring->setPartNumber($data['partNumber']);
         }
         
-        if (isset($data['dimensions'])) {
-            $ring->setDimensions($data['dimensions']);
+        if (isset($data['dimensions']) && is_array($data['dimensions'])) {
+            // Переиндексируем массив, чтобы убедиться, что ключи последовательные с 0
+            $ring->setDimensions(array_values($data['dimensions']));
         }
         
         if (isset($data['inStock'])) {

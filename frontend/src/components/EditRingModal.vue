@@ -12,7 +12,7 @@
             class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           >
           <div class="flex justify-between items-center p-8 border-b border-gray-200">
-            <h2 class="text-3xl font-bold text-gray-900">Редактирование кольца</h2>
+            <h2 class="text-3xl font-bold text-gray-900">{{ props.ring ? 'Редактирование кольца' : 'Создание кольца' }}</h2>
             <button
               @click="closeModal"
               class="text-gray-500 hover:text-gray-700 transition-colors"
@@ -26,6 +26,43 @@
           <div class="overflow-y-auto p-8">
             <form @submit.prevent="saveRing" class="space-y-6">
               <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Группа</label>
+                <div v-if="!props.ring" class="relative">
+                  <input
+                    v-model="groupSearchQuery"
+                    @focus="showGroupDropdown = true"
+                    @input="showGroupDropdown = true"
+                    type="text"
+                    class="input w-full"
+                    placeholder="Начните вводить название группы..."
+                    required
+                  />
+                  <div
+                    v-if="showGroupDropdown && filteredGroups.length > 0"
+                    class="absolute z-30 mt-2 w-full bg-white rounded-xl shadow-lg border border-gray-200 max-h-60 overflow-y-auto"
+                  >
+                    <button
+                      v-for="group in filteredGroups"
+                      :key="group.id"
+                      type="button"
+                      @click="selectGroup(group)"
+                      class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0"
+                    >
+                      <div class="font-bold text-gray-900">{{ group.nameRu }}</div>
+                      <div class="text-sm text-gray-600">{{ group.typeCode }} • {{ group.brand || 'Без бренда' }}</div>
+                    </button>
+                  </div>
+                </div>
+                <div v-else class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="font-bold text-gray-900">{{ currentGroupInfo?.nameRu || 'Группа не найдена' }}</div>
+                  <div class="text-sm text-gray-600">{{ currentGroupInfo?.typeCode }} • {{ currentGroupInfo?.brand || 'Без бренда' }}</div>
+                </div>
+                <p v-if="selectedGroupName && !props.ring" class="mt-2 text-sm text-gray-600">
+                  Выбрано: <span class="font-bold text-purple-600">{{ selectedGroupName }}</span>
+                </p>
+              </div>
+
+              <div>
                 <label class="block text-sm font-bold text-gray-900 mb-2">Номер (Артикул)</label>
                 <input
                   v-model="formData.partNumber"
@@ -37,15 +74,28 @@
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-gray-900 mb-2">Размеры (JSON массив)</label>
-                <textarea
-                  v-model="dimensionsString"
-                  rows="4"
-                  class="input w-full font-mono text-sm"
-                  placeholder='["10.5", "12", "8.2"]'
-                ></textarea>
-                <p v-if="dimensionsError" class="mt-2 text-sm text-red-600">{{ dimensionsError }}</p>
-                <p class="mt-2 text-sm text-gray-600">Введите размеры в виде JSON массива строк или чисел</p>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Размеры</label>
+                <div v-if="currentGroupColumnNames.length > 0" class="mb-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <div class="text-sm font-bold text-purple-900 mb-2">Названия колонок для этой группы:</div>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="(columnName, index) in currentGroupColumnNames"
+                      :key="index"
+                      class="px-3 py-1 bg-white rounded-lg text-sm font-semibold text-purple-700 border border-purple-300"
+                    >
+                      {{ columnName }}
+                    </span>
+                  </div>
+                </div>
+                <input
+                  v-model="dimensionsInput"
+                  type="text"
+                  class="input w-full"
+                  placeholder="Введите размеры через запятую: 10.5, 12, 8.2"
+                />
+                <p class="mt-2 text-sm text-gray-600">
+                  Введите размеры через запятую в порядке колонок выше. Например: 10.5, 12, 8.2, 15
+                </p>
               </div>
 
               <div>
@@ -151,28 +201,27 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-3">
-                <input
-                  v-model="formData.isHidden"
-                  type="checkbox"
-                  id="isHidden"
-                  class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                />
-                <label for="isHidden" class="text-sm font-bold text-gray-900">Скрыть кольцо</label>
-              </div>
-
               <div class="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  :disabled="saving || uploading"
+                  :disabled="saving || uploading || deleting"
                   class="flex-1 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold disabled:opacity-50"
                 >
                   {{ uploading ? 'Загрузка фото...' : (saving ? 'Сохранение...' : 'Сохранить') }}
                 </button>
                 <button
+                  v-if="props.ring?.id"
+                  type="button"
+                  @click="deleteRing"
+                  :disabled="saving || uploading || deleting"
+                  class="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-semibold disabled:opacity-50"
+                >
+                  {{ deleting ? 'Удаление...' : 'Удалить' }}
+                </button>
+                <button
                   type="button"
                   @click="closeModal"
-                  :disabled="saving || uploading"
+                  :disabled="saving || uploading || deleting"
                   class="px-6 py-3 bg-gray-300 text-gray-900 rounded-xl hover:bg-gray-400 transition-colors font-semibold disabled:opacity-50"
                 >
                   Отмена
@@ -188,7 +237,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import apiClient from '@/config/axios'
 
 const props = defineProps({
@@ -199,30 +248,100 @@ const props = defineProps({
   ring: {
     type: Object,
     default: null
+  },
+  groups: {
+    type: Array,
+    default: () => []
   }
 })
 
-const emit = defineEmits(['close', 'saved'])
+const emit = defineEmits(['close', 'saved', 'deleted'])
 
 const formData = ref({
+  ringGroup: '',
   partNumber: '',
   dimensions: [],
   price: '',
   inStock: 0,
-  photos: [],
-  isHidden: false
+  photos: []
 })
 
-const dimensionsString = ref('')
-const dimensionsError = ref('')
+const dimensionsInput = ref('')
+const groupSearchQuery = ref('')
+const showGroupDropdown = ref(false)
+const selectedGroupName = ref('')
 const saving = ref(false)
 const uploading = ref(false)
+const deleting = ref(false)
 const draggedIndex = ref(null)
 const dragOverIndex = ref(null)
+
+const filteredGroups = computed(() => {
+  if (!groupSearchQuery.value) {
+    return props.groups || []
+  }
+  const query = groupSearchQuery.value.toLowerCase()
+  return (props.groups || []).filter(group => 
+    group.nameRu?.toLowerCase().includes(query) ||
+    group.nameEn?.toLowerCase().includes(query) ||
+    group.typeCode?.toLowerCase().includes(query) ||
+    group.brand?.toLowerCase().includes(query)
+  )
+})
+
+const currentGroupInfo = computed(() => {
+  if (!formData.value.ringGroup || !props.groups) {
+    return null
+  }
+  return props.groups.find(g => g.id === formData.value.ringGroup) || null
+})
+
+const currentGroupColumnNames = computed(() => {
+  if (!currentGroupInfo.value || !currentGroupInfo.value.columnNames) {
+    return []
+  }
+  
+  // Поддержка как массива, так и объекта (старый формат)
+  if (Array.isArray(currentGroupInfo.value.columnNames)) {
+    return currentGroupInfo.value.columnNames
+  } else if (typeof currentGroupInfo.value.columnNames === 'object') {
+    return Object.values(currentGroupInfo.value.columnNames)
+  }
+  
+  return []
+})
+
+const selectGroup = (group) => {
+  formData.value.ringGroup = group.id
+  groupSearchQuery.value = `${group.nameRu} (${group.typeCode})`
+  selectedGroupName.value = `${group.nameRu} (${group.typeCode})`
+  showGroupDropdown.value = false
+}
 
 const closeModal = () => {
   emit('close')
 }
+
+// Закрытие dropdown при клике вне элемента
+const handleClickOutside = (event) => {
+  if (showGroupDropdown.value) {
+    const dropdown = event.target.closest('.relative')
+    if (!dropdown) {
+      showGroupDropdown.value = false
+    }
+  }
+}
+
+// Добавляем слушатель при монтировании
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    setTimeout(() => {
+      document.addEventListener('click', handleClickOutside)
+    }, 100)
+  } else {
+    document.removeEventListener('click', handleClickOutside)
+  }
+})
 
 const uploadImage = async (file) => {
   const formDataUpload = new FormData()
@@ -312,29 +431,36 @@ const handleDragEnd = () => {
 }
 
 const saveRing = async () => {
-  if (!props.ring?.id) return
+  // Парсинг размеров из строки через запятую
+  let dimensions = []
+  if (dimensionsInput.value.trim()) {
+    dimensions = dimensionsInput.value
+      .split(',')
+      .map(d => d.trim())
+      .filter(d => d !== '')
+  }
 
-  // Валидация JSON для dimensions
-  if (dimensionsString.value.trim()) {
-    try {
-      const parsed = JSON.parse(dimensionsString.value)
-      if (!Array.isArray(parsed)) {
-        dimensionsError.value = 'Размеры должны быть массивом'
-        return
-      }
-      formData.value.dimensions = parsed
-      dimensionsError.value = ''
-    } catch (e) {
-      dimensionsError.value = 'Неверный формат JSON'
-      return
-    }
-  } else {
-    formData.value.dimensions = []
+  // Проверка группы при создании
+  if (!props.ring && !formData.value.ringGroup) {
+    alert('Пожалуйста, выберите группу')
+    return
+  }
+
+  // Создаем объект данных для отправки
+  const dataToSend = {
+    ...formData.value,
+    dimensions: Array.from(dimensions) // Принудительно создаем массив
   }
 
   saving.value = true
   try {
-    await apiClient.patch(`/api/admin/rings/${props.ring.id}`, formData.value)
+    if (props.ring?.id) {
+      // Редактирование существующего кольца
+      await apiClient.patch(`/api/admin/rings/${props.ring.id}`, dataToSend)
+    } else {
+      // Создание нового кольца
+      await apiClient.post('/api/admin/rings', dataToSend)
+    }
     emit('saved')
   } catch (error) {
     console.error('Ошибка сохранения кольца:', error)
@@ -344,18 +470,53 @@ const saveRing = async () => {
   }
 }
 
+const deleteRing = async () => {
+  if (!props.ring?.id) return
+  
+  if (!confirm('Вы уверены, что хотите удалить это кольцо? Это действие нельзя отменить.')) {
+    return
+  }
+
+  deleting.value = true
+  try {
+    await apiClient.delete(`/api/admin/rings/${props.ring.id}`)
+    emit('deleted')
+  } catch (error) {
+    console.error('Ошибка удаления кольца:', error)
+    alert('Ошибка при удалении кольца')
+  } finally {
+    deleting.value = false
+  }
+}
+
 watch(() => props.visible, (newVal) => {
-  if (newVal && props.ring) {
-    formData.value = {
-      partNumber: props.ring.partNumber || '',
-      dimensions: props.ring.dimensions || [],
-      price: props.ring.price || '',
-      inStock: props.ring.inStock || 0,
-      photos: props.ring.photos || [],
-      isHidden: props.ring.isHidden || false
+  if (newVal) {
+    if (props.ring) {
+      // Режим редактирования
+      formData.value = {
+        ringGroup: props.ring.ringGroup || '',
+        partNumber: props.ring.partNumber || '',
+        dimensions: props.ring.dimensions || [],
+        price: props.ring.price || '',
+        inStock: props.ring.inStock || 0,
+        photos: props.ring.photos || []
+      }
+      dimensionsInput.value = props.ring.dimensions ? props.ring.dimensions.join(', ') : ''
+    } else {
+      // Режим создания - очищаем форму
+      formData.value = {
+        ringGroup: '',
+        partNumber: '',
+        dimensions: [],
+        price: '',
+        inStock: 0,
+        photos: []
+      }
+      dimensionsInput.value = ''
+      groupSearchQuery.value = ''
+      selectedGroupName.value = ''
+      showGroupDropdown.value = false
     }
-    dimensionsString.value = props.ring.dimensions ? JSON.stringify(props.ring.dimensions, null, 2) : '[]'
-    dimensionsError.value = ''
     document.body.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = ''

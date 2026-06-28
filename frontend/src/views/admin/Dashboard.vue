@@ -57,24 +57,24 @@
       <div class="glass-card-strong rounded-3xl p-10">
         <h2 class="heading-lg mb-8">Быстрые действия</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <router-link 
-            to="/admin/groups/create" 
-            class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900"
+          <button 
+            @click="openCreateGroupModal"
+            class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900 cursor-pointer"
           >
             <svg class="w-8 h-8 mr-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             <span>Добавить группу</span>
-          </router-link>
-          <router-link 
-            to="/admin/rings/create" 
-            class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900"
+          </button>
+          <button 
+            @click="openCreateRingModal"
+            class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900 cursor-pointer"
           >
             <svg class="w-8 h-8 mr-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             <span>Добавить кольцо</span>
-          </router-link>
+          </button>
           <router-link 
             to="/admin/import" 
             class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900"
@@ -98,6 +98,22 @@
       </div>
 
     </div>
+
+    <!-- Модальные окна -->
+    <EditGroupModal
+      :visible="showGroupModal"
+      :group="null"
+      @close="showGroupModal = false"
+      @saved="handleGroupCreated"
+    />
+
+    <EditRingModal
+      :visible="showRingModal"
+      :ring="null"
+      :groups="groups"
+      @close="showRingModal = false"
+      @saved="handleRingCreated"
+    />
   </div>
 </template>
 
@@ -105,6 +121,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import apiClient from '@/config/axios'
+import EditGroupModal from '@/components/EditGroupModal.vue'
+import EditRingModal from '@/components/EditRingModal.vue'
 
 const router = useRouter()
 
@@ -115,6 +133,10 @@ const stats = ref({
   ringsWithStock: 0,
   clientsCount: 0
 })
+
+const groups = ref([])
+const showGroupModal = ref(false)
+const showRingModal = ref(false)
 
 const goToHome = () => {
   router.push('/')
@@ -132,7 +154,40 @@ const goToClients = () => {
   router.push({ name: 'AdminClients' })
 }
 
-onMounted(async () => {
+const openCreateGroupModal = () => {
+  showGroupModal.value = true
+}
+
+const openCreateRingModal = async () => {
+  // Загружаем список групп перед открытием модального окна
+  if (groups.value.length === 0) {
+    await loadGroups()
+  }
+  showRingModal.value = true
+}
+
+const handleGroupCreated = async () => {
+  showGroupModal.value = false
+  await loadStats()
+  // Перезагружаем список групп
+  await loadGroups()
+}
+
+const handleRingCreated = async () => {
+  showRingModal.value = false
+  await loadStats()
+}
+
+const loadGroups = async () => {
+  try {
+    const response = await apiClient.get('/api/admin/groups')
+    groups.value = response.data
+  } catch (error) {
+    console.error('Ошибка загрузки групп:', error)
+  }
+}
+
+const loadStats = async () => {
   try {
     const responses = await Promise.allSettled([
       apiClient.get('/api/admin/stats'),
@@ -152,5 +207,9 @@ onMounted(async () => {
   } catch (error) {
     console.error('Ошибка загрузки статистики:', error)
   }
+}
+
+onMounted(async () => {
+  await loadStats()
 })
 </script>

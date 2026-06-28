@@ -18,22 +18,23 @@
               <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input
-                v-model="filters.search"
-                type="text"
-                placeholder="Поиск по названию, типу"
-                class="input pl-12 pr-10"
-                @input="applyFilters"
-              />
-              <button
-                v-if="filters.search"
-                @click="clearSearch"
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors z-10"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+            <input
+              v-model="filters.search"
+              type="text"
+              placeholder="Поиск по названию, типу"
+              class="input pl-12 pr-10"
+              @input="applyFilters"
+            />
+            <button
+              v-if="filters.search"
+              @click="clearSearch"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors z-10"
+              title="Очистить поиск"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             </div>
             <label class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
               <input
@@ -50,6 +51,14 @@
       <div v-if="loading" class="glass-card rounded-2xl text-center py-12">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600"></div>
         <p class="mt-4 text-body">Загрузка...</p>
+      </div>
+
+      <div v-else-if="filteredGroups.length === 0" class="glass-card rounded-3xl p-16 text-center">
+        <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <p class="mt-4 text-gray-600 font-semibold">Группы не найдены</p>
+        <p class="mt-2 text-gray-500">Попробуйте изменить параметры поиска</p>
       </div>
 
       <div v-else class="glass-card rounded-3xl overflow-hidden">
@@ -126,7 +135,24 @@
                   <div class="font-bold text-gray-900">{{ group.nameRu || '—' }}</div>
                   <div v-if="group.nameEn" class="text-sm text-gray-600 mt-1">{{ group.nameEn }}</div>
                 </td>
-                <td class="px-4 py-3 text-gray-700 font-medium">{{ group.typeCode }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-700 font-medium">{{ group.typeCode }}</span>
+                    <button
+                      @click="copyToClipboard(`type-${group.id}`, group.typeCode)"
+                      class="p-1 transition-colors rounded"
+                      :class="copiedItems[`type-${group.id}`] ? 'text-green-600' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'"
+                      :title="copiedItems[`type-${group.id}`] ? 'Скопировано!' : 'Копировать тип'"
+                    >
+                      <svg v-if="copiedItems[`type-${group.id}`]" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
                 <td class="px-4 py-3 text-gray-700">{{ group.brand || '—' }}</td>
                 <td class="px-4 py-3">
                   <div class="flex gap-2">
@@ -196,6 +222,7 @@
     :group="selectedGroup"
     @close="closeEditModal"
     @saved="onGroupSaved"
+    @deleted="onGroupDeleted"
   />
 
   <ImageModal
@@ -230,6 +257,7 @@ const itemsPerPage = 20
 const sortField = ref('id')
 const sortDirection = ref('asc')
 const allRings = ref([])
+const copiedItems = ref({})
 
 const filteredGroups = computed(() => {
   let filtered = groups.value
@@ -348,6 +376,11 @@ function onGroupSaved() {
   fetchGroups()
 }
 
+function onGroupDeleted() {
+  closeEditModal()
+  fetchGroups()
+}
+
 function openRingsList(group) {
   router.push({ name: 'AdminRings', query: { groupId: group.id } })
 }
@@ -363,6 +396,50 @@ function closeImageModal() {
 
 function clearSearch() {
   filters.value.search = ''
+  applyFilters()
+}
+
+async function copyToClipboard(itemId, text) {
+  try {
+    let success = false
+    
+    // Проверяем доступность Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text)
+      success = true
+    } else {
+      // Fallback метод для старых браузеров или небезопасного контекста
+      const textArea = document.createElement('textarea')
+      textArea.value = text
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      textArea.style.top = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      try {
+        success = document.execCommand('copy')
+      } catch (err) {
+        console.error('Fallback: Ошибка копирования', err)
+      }
+      document.body.removeChild(textArea)
+    }
+    
+    if (success) {
+      // Показываем галочку
+      copiedItems.value[itemId] = true
+      
+      // Через 2 секунды возвращаем иконку копирования
+      setTimeout(() => {
+        copiedItems.value[itemId] = false
+      }, 2000)
+    } else {
+      alert('Ошибка при копировании')
+    }
+  } catch (error) {
+    console.error('Ошибка копирования:', error)
+    alert('Ошибка при копировании')
+  }
 }
 
 onMounted(async () => {

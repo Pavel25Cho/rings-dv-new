@@ -36,9 +36,19 @@
               v-model="filters.search"
               type="text"
               placeholder="Поиск по номеру"
-              class="input pl-12"
+              class="input pl-12 pr-10"
               @input="applyFilters"
             />
+            <button
+              v-if="filters.search"
+              @click="clearSearch"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors z-10"
+              title="Очистить поиск"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
           <label class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
             <input
@@ -64,6 +74,14 @@
       <div v-if="loading" class="glass-card rounded-2xl text-center py-12">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600"></div>
         <p class="mt-4 text-body">Загрузка...</p>
+      </div>
+
+      <div v-else-if="filteredRings.length === 0" class="glass-card rounded-3xl p-16 text-center">
+        <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <p class="mt-4 text-gray-600 font-semibold">Кольца не найдены</p>
+        <p class="mt-2 text-gray-500">Попробуйте изменить параметры поиска</p>
       </div>
 
       <div v-else class="glass-card rounded-3xl overflow-hidden">
@@ -174,33 +192,65 @@
                   </div>
                   <div
                     v-else
-                    @click="startEdit(ring, 'partNumber', ring.partNumber)"
-                    class="text-gray-900 font-bold cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors overflow-hidden text-ellipsis"
-                    title="Нажмите для редактирования"
+                    class="flex items-center gap-2"
                   >
-                    {{ ring.partNumber }}
+                    <div
+                      @click="startEdit(ring, 'partNumber', ring.partNumber)"
+                      class="text-gray-900 font-bold cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors overflow-hidden text-ellipsis flex-1"
+                      title="Нажмите для редактирования"
+                    >
+                      {{ ring.partNumber }}
+                    </div>
+                    <button
+                      @click="copyToClipboard(`partNumber-${ring.id}`, ring.partNumber)"
+                      class="p-1 transition-colors rounded flex-shrink-0"
+                      :class="copiedItems[`partNumber-${ring.id}`] ? 'text-green-600' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'"
+                      :title="copiedItems[`partNumber-${ring.id}`] ? 'Скопировано!' : 'Копировать номер'"
+                    >
+                      <svg v-if="copiedItems[`partNumber-${ring.id}`]" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
                   </div>
                 </td>
                 
-                <td class="px-4 py-3 text-gray-700">
-                  {{ getGroupName(ring.ringGroup) }}
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-700">{{ getGroupName(ring.ringGroup) }}</span>
+                    <button
+                      @click="copyToClipboard(`group-${ring.id}`, getGroupName(ring.ringGroup))"
+                      class="p-1 transition-colors rounded"
+                      :class="copiedItems[`group-${ring.id}`] ? 'text-green-600' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'"
+                      :title="copiedItems[`group-${ring.id}`] ? 'Скопировано!' : 'Копировать группу'"
+                    >
+                      <svg v-if="copiedItems[`group-${ring.id}`]" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
                 
                 <!-- Размеры -->
                 <td class="px-4 py-3">
                   <div v-if="editingField.ringId === ring.id && editingField.field === 'dimensions'">
-                    <textarea
+                    <input
                       v-model="editingField.value"
-                      rows="2"
-                      class="input w-full text-xs font-mono px-2 py-1"
-                      placeholder='["10.5"]'
+                      type="text"
+                      class="input w-full text-xs px-2 py-1"
+                      placeholder="10.5, 12, 8.2"
                       @keyup.esc="cancelEdit"
                       autofocus
-                    ></textarea>
+                    />
                   </div>
                   <div
                     v-else
-                    @click="startEdit(ring, 'dimensions', JSON.stringify(ring.dimensions))"
+                    @click="startEdit(ring, 'dimensions', ring.dimensions ? ring.dimensions.join(', ') : '')"
                     class="flex flex-wrap gap-1 cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors min-h-[2rem]"
                     title="Нажмите для редактирования"
                   >
@@ -341,8 +391,10 @@
   <EditRingModal
     :visible="editModalVisible"
     :ring="selectedRing"
+    :groups="groups"
     @close="closeEditModal"
     @saved="onRingSaved"
+    @deleted="onRingDeleted"
   />
 
   <PhotoGalleryModal
@@ -395,6 +447,7 @@ const currentPage = ref(1)
 const itemsPerPage = 20
 const sortField = ref('id')
 const sortDirection = ref('asc')
+const copiedItems = ref({})
 
 const groupId = computed(() => route.query.groupId)
 
@@ -518,8 +571,12 @@ function getGroupName(groupId) {
   return group ? group.typeCode : '—'
 }
 
-function openEditModal(ring) {
+async function openEditModal(ring) {
   selectedRing.value = ring
+  // Загружаем группы, если их еще нет
+  if (groups.value.length === 0) {
+    await fetchGroups()
+  }
   editModalVisible.value = true
 }
 
@@ -578,16 +635,15 @@ async function saveField(ring) {
       }
       updateData.partNumber = value.trim()
     } else if (field === 'dimensions') {
-      try {
-        const parsed = JSON.parse(value)
-        if (!Array.isArray(parsed)) {
-          alert('Размеры должны быть массивом')
-          return
-        }
-        updateData.dimensions = parsed
-      } catch (e) {
-        alert('Неверный формат JSON для размеров')
-        return
+      // Парсинг размеров из строки через запятую
+      if (value.trim()) {
+        const dimensions = value
+          .split(',')
+          .map(d => d.trim())
+          .filter(d => d !== '')
+        updateData.dimensions = Array.from(dimensions)
+      } else {
+        updateData.dimensions = []
       }
     } else if (field === 'price') {
       updateData.price = value === '' ? null : value
@@ -627,6 +683,11 @@ function onRingSaved() {
   fetchRings()
 }
 
+function onRingDeleted() {
+  closeEditModal()
+  fetchRings()
+}
+
 function goToGroups() {
   router.push({ name: 'AdminGroups' })
 }
@@ -648,6 +709,54 @@ function openPhotoGallery(photos, title) {
 
 function closePhotoGallery() {
   photoGalleryVisible.value = false
+}
+
+function clearSearch() {
+  filters.value.search = ''
+  applyFilters()
+}
+
+async function copyToClipboard(itemId, text) {
+  try {
+    let success = false
+    
+    // Проверяем доступность Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text)
+      success = true
+    } else {
+      // Fallback метод для старых браузеров или небезопасного контекста
+      const textArea = document.createElement('textarea')
+      textArea.value = text
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      textArea.style.top = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      try {
+        success = document.execCommand('copy')
+      } catch (err) {
+        console.error('Fallback: Ошибка копирования', err)
+      }
+      document.body.removeChild(textArea)
+    }
+    
+    if (success) {
+      // Показываем галочку
+      copiedItems.value[itemId] = true
+      
+      // Через 2 секунды возвращаем иконку копирования
+      setTimeout(() => {
+        copiedItems.value[itemId] = false
+      }, 2000)
+    } else {
+      alert('Ошибка при копировании')
+    }
+  } catch (error) {
+    console.error('Ошибка копирования:', error)
+    alert('Ошибка при копировании')
+  }
 }
 
 onMounted(async () => {

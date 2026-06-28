@@ -12,7 +12,7 @@
             class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           >
           <div class="flex justify-between items-center p-8 border-b border-gray-200">
-            <h2 class="text-3xl font-bold text-gray-900">Редактирование группы</h2>
+            <h2 class="text-3xl font-bold text-gray-900">{{ props.group ? 'Редактирование группы' : 'Создание группы' }}</h2>
             <button
               @click="closeModal"
               class="text-gray-500 hover:text-gray-700 transition-colors"
@@ -139,38 +139,39 @@
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-gray-900 mb-2">Названия колонок (JSON)</label>
-                <textarea
-                  v-model="columnNamesString"
-                  rows="4"
-                  class="input w-full font-mono text-sm"
-                  placeholder='{"1": "D1", "2": "D2", "3": "d"}'
-                ></textarea>
-                <p v-if="columnNamesError" class="mt-2 text-sm text-red-600">{{ columnNamesError }}</p>
-              </div>
-
-              <div class="flex items-center gap-3">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Названия колонок</label>
                 <input
-                  v-model="formData.isHidden"
-                  type="checkbox"
-                  id="isHidden"
-                  class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                  v-model="columnNamesInput"
+                  type="text"
+                  class="input w-full"
+                  placeholder="Введите названия колонок через запятую: D1, D2, d, L"
                 />
-                <label for="isHidden" class="text-sm font-bold text-gray-900">Скрыть группу</label>
+                <p class="mt-2 text-sm text-gray-600">
+                  Введите названия колонок через запятую. Например: D1, D2, d, L
+                </p>
               </div>
 
               <div class="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  :disabled="saving || uploading"
+                  :disabled="saving || uploading || deleting"
                   class="flex-1 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold disabled:opacity-50"
                 >
                   {{ uploading ? 'Загрузка фото...' : (saving ? 'Сохранение...' : 'Сохранить') }}
                 </button>
                 <button
+                  v-if="props.group?.id"
+                  type="button"
+                  @click="deleteGroup"
+                  :disabled="saving || uploading || deleting"
+                  class="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-semibold disabled:opacity-50"
+                >
+                  {{ deleting ? 'Удаление...' : 'Удалить' }}
+                </button>
+                <button
                   type="button"
                   @click="closeModal"
-                  :disabled="saving || uploading"
+                  :disabled="saving || uploading || deleting"
                   class="px-6 py-3 bg-gray-300 text-gray-900 rounded-xl hover:bg-gray-400 transition-colors font-semibold disabled:opacity-50"
                 >
                   Отмена
@@ -200,7 +201,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close', 'saved'])
+const emit = defineEmits(['close', 'saved', 'deleted'])
 
 const formData = ref({
   nameRu: '',
@@ -212,14 +213,13 @@ const formData = ref({
   descriptionRu: '',
   photoUrl: '',
   dimensionsPhotoUrl: '',
-  columnNames: null,
-  isHidden: false
+  columnNames: null
 })
 
-const columnNamesString = ref('')
-const columnNamesError = ref('')
+const columnNamesInput = ref('')
 const saving = ref(false)
 const uploading = ref(false)
+const deleting = ref(false)
 
 const closeModal = () => {
   emit('close')
@@ -267,24 +267,30 @@ const handleDimensionsPhotoUpload = async (event) => {
 }
 
 const saveGroup = async () => {
-  if (!props.group?.id) return
+  // Парсинг названий колонок из строки через запятую в массив
+  let columnNames = null
+  if (columnNamesInput.value.trim()) {
+    columnNames = columnNamesInput.value
+      .split(',')
+      .map(c => c.trim())
+      .filter(c => c !== '')
+  }
 
-  // Валидация JSON для columnNames
-  if (columnNamesString.value.trim()) {
-    try {
-      formData.value.columnNames = JSON.parse(columnNamesString.value)
-      columnNamesError.value = ''
-    } catch (e) {
-      columnNamesError.value = 'Неверный формат JSON'
-      return
-    }
-  } else {
-    formData.value.columnNames = null
+  // Создаем объект данных для отправки
+  const dataToSend = {
+    ...formData.value,
+    columnNames: columnNames && columnNames.length > 0 ? columnNames : null
   }
 
   saving.value = true
   try {
-    await apiClient.patch(`/api/admin/groups/${props.group.id}`, formData.value)
+    if (props.group?.id) {
+      // Редактирование существующей группы
+      await apiClient.patch(`/api/admin/groups/${props.group.id}`, dataToSend)
+    } else {
+      // Создание новой группы
+      await apiClient.post('/api/admin/groups', dataToSend)
+    }
     emit('saved')
   } catch (error) {
     console.error('Ошибка сохранения группы:', error)
@@ -294,23 +300,67 @@ const saveGroup = async () => {
   }
 }
 
+const deleteGroup = async () => {
+  if (!props.group?.id) return
+  
+  if (!confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
+    return
+  }
+
+  deleting.value = true
+  try {
+    await apiClient.delete(`/api/admin/groups/${props.group.id}`)
+    emit('deleted')
+  } catch (error) {
+    console.error('Ошибка удаления группы:', error)
+    alert('Ошибка при удалении группы')
+  } finally {
+    deleting.value = false
+  }
+}
+
 watch(() => props.visible, (newVal) => {
-  if (newVal && props.group) {
-    formData.value = {
-      nameRu: props.group.nameRu || '',
-      nameEn: props.group.nameEn || '',
-      typeCode: props.group.typeCode || '',
-      brand: props.group.brand || '',
-      materialEn: props.group.materialEn || '',
-      materialRu: props.group.materialRu || '',
-      descriptionRu: props.group.descriptionRu || '',
-      photoUrl: props.group.photoUrl || '',
-      dimensionsPhotoUrl: props.group.dimensionsPhotoUrl || '',
-      columnNames: props.group.columnNames || null,
-      isHidden: props.group.isHidden || false
+  if (newVal) {
+    if (props.group) {
+      // Режим редактирования
+      formData.value = {
+        nameRu: props.group.nameRu || '',
+        nameEn: props.group.nameEn || '',
+        typeCode: props.group.typeCode || '',
+        brand: props.group.brand || '',
+        materialEn: props.group.materialEn || '',
+        materialRu: props.group.materialRu || '',
+        descriptionRu: props.group.descriptionRu || '',
+        photoUrl: props.group.photoUrl || '',
+        dimensionsPhotoUrl: props.group.dimensionsPhotoUrl || '',
+        columnNames: props.group.columnNames || null
+      }
+      // Преобразуем columnNames из массива в строку для редактирования
+      if (props.group.columnNames && Array.isArray(props.group.columnNames)) {
+        columnNamesInput.value = props.group.columnNames.join(', ')
+      } else if (props.group.columnNames && typeof props.group.columnNames === 'object') {
+        // Поддержка старого формата объекта для совместимости
+        const columns = Object.values(props.group.columnNames)
+        columnNamesInput.value = columns.join(', ')
+      } else {
+        columnNamesInput.value = ''
+      }
+    } else {
+      // Режим создания - очищаем форму
+      formData.value = {
+        nameRu: '',
+        nameEn: '',
+        typeCode: '',
+        brand: '',
+        materialEn: '',
+        materialRu: '',
+        descriptionRu: '',
+        photoUrl: '',
+        dimensionsPhotoUrl: '',
+        columnNames: null
+      }
+      columnNamesInput.value = ''
     }
-    columnNamesString.value = props.group.columnNames ? JSON.stringify(props.group.columnNames, null, 2) : ''
-    columnNamesError.value = ''
     document.body.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = ''
