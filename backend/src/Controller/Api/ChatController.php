@@ -3,16 +3,20 @@
 namespace App\Controller\Api;
 
 use App\Entity\Chat;
+use App\Entity\ChatAttachment;
 use App\Entity\ChatMessage;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\Ring;
 use App\Entity\User;
+use App\Service\FileUploadService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -21,7 +25,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ChatController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private FileUploadService $fileUploadService
     ) {
     }
 
@@ -80,6 +85,13 @@ class ChatController extends AbstractController
             return $this->json([
                 'success' => false,
                 'message' => 'Админы не могут создавать заказы'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        if (!$user->isEmailVerified()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Для оформления заказа необходимо подтвердить email'
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -186,10 +198,17 @@ class ChatController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['chatId']) || !isset($data['text'])) {
+        if (!isset($data['chatId'])) {
             return $this->json([
                 'success' => false,
-                'message' => 'Необходимо указать chatId и text'
+                'message' => 'Необходимо указать chatId'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (empty($data['text']) && empty($data['attachments'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Сообщение должно содержать текст или файлы'
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -215,7 +234,10 @@ class ChatController extends AbstractController
             $message = new ChatMessage();
             $message->setChat($chat);
             $message->setSender($user);
-            $message->setMessageText(trim($data['text']));
+            
+            if (!empty($data['text'])) {
+                $message->setMessageText($this->sanitizeText(trim($data['text'])));
+            }
 
             $chat->setLastMessageAt(new \DateTime());
 
@@ -236,7 +258,7 @@ class ChatController extends AbstractController
     }
 
     #[Route('/messages/{chatId}', name: 'get_messages', methods: ['GET'])]
-    public function getMessages(int $chatId): JsonResponse
+    public function getMessages(int $chatId, Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
@@ -265,7 +287,32 @@ class ChatController extends AbstractController
             ], Response::HTTP_FORBIDDEN);
         }
 
-        $messages = $chat->getMessages()->toArray();
+        // Параметры пагинации
+        $limit = $request->query->getInt('limit', 10);
+        $offset = $request->query->getInt('offset', 0);
+        
+        // Ограничиваем максимальное значение limit
+        $limit = min($limit, 100);
+
+        // Получаем общее количество сообщений
+        $totalMessages = $this->entityManager->createQuery(
+            'SELECT COUNT(m.id) FROM App\Entity\ChatMessage m WHERE m.chat = :chat'
+        )
+        ->setParameter('chat', $chat)
+        ->getSingleScalarResult();
+
+        // Получаем сообщения с пагинацией (сортируем по ID в обратном порядке)
+        $messages = $this->entityManager->createQuery(
+            'SELECT m FROM App\Entity\ChatMessage m WHERE m.chat = :chat ORDER BY m.id DESC'
+        )
+        ->setParameter('chat', $chat)
+        ->setMaxResults($limit)
+        ->setFirstResult($offset)
+        ->getResult();
+
+        // Переворачиваем массив, чтобы старые сообщения были сначала
+        $messages = array_reverse($messages);
+
         $serializedMessages = array_map(
             fn($msg) => $this->serializeMessage($msg, $user),
             $messages
@@ -273,7 +320,13 @@ class ChatController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'messages' => $serializedMessages
+            'messages' => $serializedMessages,
+            'pagination' => [
+                'total' => (int)$totalMessages,
+                'limit' => $limit,
+                'offset' => $offset,
+                'hasMore' => ($offset + $limit) < $totalMessages
+            ]
         ]);
     }
 
@@ -476,6 +529,152 @@ class ChatController extends AbstractController
         ]);
     }
 
+    #[Route('/upload-file/{chatId}', name: 'upload_file', methods: ['POST'])]
+    public function uploadFile(int $chatId, Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Необходима авторизация'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $chat = $this->entityManager->getRepository(Chat::class)->find($chatId);
+
+        if (!$chat) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Чат не найден'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$user->isAdmin() && $chat->getUser()->getId() !== $user->getId()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Нет доступа к этому чату'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $file = $request->files->get('file');
+        
+        if (!$file) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Файл не загружен'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $uploadedFileData = $this->fileUploadService->uploadChatFile($file);
+
+            $message = new ChatMessage();
+            $message->setChat($chat);
+            $message->setSender($user);
+            
+            $text = $request->request->get('text', '');
+            if (!empty($text)) {
+                $message->setMessageText($this->sanitizeText(trim($text)));
+            }
+
+            $attachment = new ChatAttachment();
+            $attachment->setOriginalFilename($uploadedFileData['originalFilename']);
+            $attachment->setStoredFilename($uploadedFileData['storedFilename']);
+            $attachment->setMimeType($uploadedFileData['mimeType']);
+            $attachment->setFileSize($uploadedFileData['fileSize']);
+            
+            $message->addAttachment($attachment);
+
+            $chat->setLastMessageAt(new \DateTime());
+
+            $this->entityManager->persist($message);
+            $this->entityManager->persist($attachment);
+            $this->entityManager->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => $this->serializeMessage($message, $user)
+            ]);
+
+        } catch (\RuntimeException $e) {
+            return $this->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Ошибка при загрузке файла: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/download-file/{attachmentId}', name: 'download_file', methods: ['GET'])]
+    public function downloadFile(int $attachmentId): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Необходима авторизация'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $attachment = $this->entityManager->getRepository(ChatAttachment::class)->find($attachmentId);
+
+        if (!$attachment) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Файл не найден'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $chat = $attachment->getMessage()->getChat();
+
+        if (!$user->isAdmin() && $chat->getUser()->getId() !== $user->getId()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Нет доступа к этому файлу'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $filePath = $this->fileUploadService->getFilePath($attachment->getStoredFilename());
+
+        if (!$this->fileUploadService->fileExists($attachment->getStoredFilename())) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Файл не найден на сервере'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $response = new BinaryFileResponse($filePath);
+        
+        // Правильное кодирование имени файла для поддержки кириллицы
+        // Используем явное указание fallback ASCII имени для совместимости
+        $originalFilename = $attachment->getOriginalFilename();
+        $fallbackFilename = transliterator_transliterate(
+            'Any-Latin; Latin-ASCII',
+            $originalFilename
+        ) ?: 'file.' . pathinfo($originalFilename, PATHINFO_EXTENSION);
+        
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            $originalFilename,
+            $fallbackFilename
+        );
+        
+        $response->headers->set('Content-Type', $attachment->getMimeType());
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Frame-Options', 'DENY');
+        $response->headers->set('Content-Security-Policy', "default-src 'none'");
+
+        return $response;
+    }
+
     private function serializeChat(Chat $chat, User $currentUser): array
     {
         $messages = $chat->getMessages()->toArray();
@@ -495,6 +694,8 @@ class ChatController extends AbstractController
                 'email' => $chat->getUser()->getEmail(),
                 'name' => $chat->getUser()->getName(),
                 'phone' => $chat->getUser()->getPhone(),
+                'isBlocked' => $chat->getUser()->isBlocked(),
+                'emailVerified' => $chat->getUser()->isEmailVerified(),
             ],
             'lastMessageAt' => $chat->getLastMessageAt()?->format('Y-m-d H:i:s'),
             'createdAt' => $chat->getCreatedAt()->format('Y-m-d H:i:s'),
@@ -526,7 +727,36 @@ class ChatController extends AbstractController
             $data['order'] = $this->serializeOrder($order, $currentUser);
         }
 
+        if ($message->hasAttachments()) {
+            $data['attachments'] = array_map(
+                fn($attachment) => $this->serializeAttachment($attachment),
+                $message->getAttachments()->toArray()
+            );
+        }
+
         return $data;
+    }
+
+    private function serializeAttachment(ChatAttachment $attachment): array
+    {
+        return [
+            'id' => $attachment->getId(),
+            'originalFilename' => $attachment->getOriginalFilename(),
+            'mimeType' => $attachment->getMimeType(),
+            'fileSize' => $attachment->getFileSize(),
+            'fileSizeFormatted' => FileUploadService::formatFileSize($attachment->getFileSize()),
+            'isImage' => $attachment->isImage(),
+            'createdAt' => $attachment->getCreatedAt()->format('Y-m-d H:i:s'),
+            'downloadUrl' => '/api/chat/download-file/' . $attachment->getId()
+        ];
+    }
+
+    private function sanitizeText(string $text): string
+    {
+        $text = strip_tags($text);
+        $text = htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        return $text;
     }
 
     private function serializeOrder(Order $order, User $currentUser): array

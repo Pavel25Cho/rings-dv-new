@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ChatMessageRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -25,7 +27,7 @@ class ChatMessage
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $sender = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $messageText = null;
 
     #[ORM\Column(type: 'boolean')]
@@ -37,9 +39,13 @@ class ChatMessage
     #[ORM\OneToOne(mappedBy: 'message', targetEntity: Order::class, cascade: ['persist', 'remove'])]
     private ?Order $order = null;
 
+    #[ORM\OneToMany(mappedBy: 'message', targetEntity: ChatAttachment::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $attachments;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -114,5 +120,39 @@ class ChatMessage
         $this->order = $order;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, ChatAttachment>
+     */
+    public function getAttachments(): Collection
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(ChatAttachment $attachment): static
+    {
+        if (!$this->attachments->contains($attachment)) {
+            $this->attachments->add($attachment);
+            $attachment->setMessage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(ChatAttachment $attachment): static
+    {
+        if ($this->attachments->removeElement($attachment)) {
+            if ($attachment->getMessage() === $this) {
+                $attachment->setMessage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function hasAttachments(): bool
+    {
+        return !$this->attachments->isEmpty();
     }
 }

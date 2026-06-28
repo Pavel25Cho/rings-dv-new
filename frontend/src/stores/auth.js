@@ -141,6 +141,15 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.loading = false
       }
+    },
+
+    async sendVerificationEmail() {
+      try {
+        const response = await apiClient.post('/api/auth/send-verification-email')
+        return response.data
+      } catch (error) {
+        throw error
+      }
     }
   }
 })

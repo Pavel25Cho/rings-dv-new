@@ -299,16 +299,147 @@ class AdminController extends AbstractController
     }
 
     #[Route('/clients', name: 'clients', methods: ['GET'])]
-    public function getClients(): JsonResponse
+    public function getClients(Request $request): JsonResponse
     {
-        $clients = $this->entityManager->getRepository(User::class)
+        $search = $request->query->get('search', '');
+        $emailVerified = $request->query->get('emailVerified');
+        $isBlocked = $request->query->get('isBlocked');
+        $hasChat = $request->query->get('hasChat');
+        
+        $qb = $this->entityManager->getRepository(User::class)
             ->createQueryBuilder('u')
+            ->leftJoin('u.chats', 'c')
             ->where('u.roles NOT LIKE :role')
-            ->setParameter('role', '%ROLE_ADMIN%')
-            ->getQuery()
-            ->getResult();
+            ->setParameter('role', '%ROLE_ADMIN%');
+        
+        if ($search) {
+            $qb->andWhere('u.email LIKE :search OR u.name LIKE :search OR u.phone LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+        
+        if ($emailVerified !== null && $emailVerified !== '') {
+            $qb->andWhere('u.emailVerified = :emailVerified')
+               ->setParameter('emailVerified', filter_var($emailVerified, FILTER_VALIDATE_BOOLEAN));
+        }
+        
+        if ($isBlocked !== null && $isBlocked !== '') {
+            $qb->andWhere('u.isBlocked = :isBlocked')
+               ->setParameter('isBlocked', filter_var($isBlocked, FILTER_VALIDATE_BOOLEAN));
+        }
+        
+        if ($hasChat !== null && $hasChat !== '') {
+            if (filter_var($hasChat, FILTER_VALIDATE_BOOLEAN)) {
+                $qb->andWhere('c.id IS NOT NULL');
+            } else {
+                $qb->andWhere('c.id IS NULL');
+            }
+        }
+        
+        $clients = $qb->orderBy('u.createdAt', 'DESC')
+                     ->getQuery()
+                     ->getResult();
+        
+        // Получаем количество сообщений для каждого пользователя
+        $chatRepo = $this->entityManager->getRepository(Chat::class);
+        
+        $result = array_map(function($user) use ($chatRepo) {
+            $chat = $chatRepo->findOneBy(['user' => $user]);
+            $hasMessages = false;
+            
+            if ($chat) {
+                $hasMessages = $chat->getMessages()->count() > 0;
+            }
+            
+            return [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'name' => $user->getName(),
+                'phone' => $user->getPhone(),
+                'isBlocked' => $user->isBlocked(),
+                'emailVerified' => $user->isEmailVerified(),
+                'hasChat' => $chat !== null,
+                'hasMessages' => $hasMessages,
+                'createdAt' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
+            ];
+        }, $clients);
 
-        return $this->json($clients);
+        return $this->json($result);
+    }
+    
+    #[Route('/clients/stats', name: 'clients_stats', methods: ['GET'])]
+    public function getClientsStats(): JsonResponse
+    {
+        $count = $this->entityManager->getRepository(User::class)
+            ->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.roles NOT LIKE :role')
+            ->andWhere('u.emailVerified = :verified')
+            ->andWhere('u.isBlocked = :blocked')
+            ->setParameter('role', '%ROLE_ADMIN%')
+            ->setParameter('verified', true)
+            ->setParameter('blocked', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $this->json(['count' => (int)$count]);
+    }
+
+    #[Route('/clients/{id}/block', name: 'client_block', methods: ['POST'])]
+    public function blockClient(int $id): JsonResponse
+    {
+        $user = $this->entityManager->getRepository(User::class)->find($id);
+        
+        if (!$user) {
+            return $this->json(['error' => 'Пользователь не найден'], 404);
+        }
+
+        if ($user->isAdmin()) {
+            return $this->json(['error' => 'Нельзя заблокировать администратора'], 400);
+        }
+
+        $user->setIsBlocked(true);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Пользователь заблокирован'
+        ]);
+    }
+
+    #[Route('/clients/{id}/unblock', name: 'client_unblock', methods: ['POST'])]
+    public function unblockClient(int $id): JsonResponse
+    {
+        $user = $this->entityManager->getRepository(User::class)->find($id);
+        
+        if (!$user) {
+            return $this->json(['error' => 'Пользователь не найден'], 404);
+        }
+
+        $user->setIsBlocked(false);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Пользователь разблокирован'
+        ]);
+    }
+
+    #[Route('/clients/{id}/verify-email', name: 'client_verify_email', methods: ['POST'])]
+    public function verifyClientEmail(int $id): JsonResponse
+    {
+        $user = $this->entityManager->getRepository(User::class)->find($id);
+        
+        if (!$user) {
+            return $this->json(['error' => 'Пользователь не найден'], 404);
+        }
+
+        $user->setEmailVerified(true);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Email подтвержден'
+        ]);
     }
 
     // #[Route('/catalog/delete-all', name: 'catalog_delete_all', methods: ['DELETE'])]

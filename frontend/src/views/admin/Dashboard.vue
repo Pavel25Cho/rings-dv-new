@@ -5,7 +5,7 @@
         <h1 class="heading-lg">Админ панель</h1>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div
           @click="goToGroups"
           class="glass-card rounded-2xl py-2 px-4 flex items-center hover:shadow-glass-lg transition-smooth cursor-pointer"
@@ -38,7 +38,10 @@
           </div>
         </div>
         
-        <div class="glass-card rounded-2xl py-2 px-4 flex items-center hover:shadow-glass-lg transition-smooth">
+        <div
+          @click="goToClients"
+          class="glass-card rounded-2xl py-2 px-4 flex items-center hover:shadow-glass-lg transition-smooth cursor-pointer"
+        >
           <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mr-5 shadow-lg">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -46,19 +49,7 @@
           </div>
           <div class="flex-1">
             <div class="text-2xl font-bold text-gray-900">{{ stats.clientsCount }}</div>
-            <div class="text-sm font-bold text-gray-600 uppercase tracking-wide mt-1">Клиентов</div>
-          </div>
-        </div>
-        
-        <div class="glass-card rounded-2xl py-2 px-4 flex items-center hover:shadow-glass-lg transition-smooth">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center mr-5 shadow-lg">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          </div>
-          <div class="flex-1">
-            <div class="text-2xl font-bold text-gray-900">{{ stats.chatsCount }}</div>
-            <div class="text-sm font-bold text-gray-600 uppercase tracking-wide mt-1">Активных чатов</div>
+            <div class="text-sm font-bold text-gray-600 uppercase tracking-wide mt-1">Активных клиентов</div>
           </div>
         </div>
       </div>
@@ -122,8 +113,7 @@ const stats = ref({
   groupsWithStock: 0,
   ringsTotal: 0,
   ringsWithStock: 0,
-  clientsCount: 0,
-  chatsCount: 0
+  clientsCount: 0
 })
 
 const goToHome = () => {
@@ -138,12 +128,15 @@ const goToRings = () => {
   router.push({ name: 'AdminRings' })
 }
 
+const goToClients = () => {
+  router.push({ name: 'AdminClients' })
+}
+
 onMounted(async () => {
   try {
     const responses = await Promise.allSettled([
       apiClient.get('/api/admin/stats'),
-      apiClient.get('/api/admin/clients'),
-      apiClient.get('/api/chats')
+      apiClient.get('/api/admin/clients/stats')
     ])
     
     if (responses[0].status === 'fulfilled') {
@@ -153,8 +146,9 @@ onMounted(async () => {
       }
     }
     
-    stats.value.clientsCount = responses[1].status === 'fulfilled' ? (responses[1].value.data?.length || 0) : 0
-    stats.value.chatsCount = responses[2].status === 'fulfilled' ? (responses[2].value.data?.length || 0) : 0
+    if (responses[1].status === 'fulfilled') {
+      stats.value.clientsCount = responses[1].value.data?.count || 0
+    }
   } catch (error) {
     console.error('Ошибка загрузки статистики:', error)
   }

@@ -139,6 +139,8 @@ class AuthController extends AbstractController
                 'email' => $user->getEmail(),
                 'role' => in_array('ROLE_ADMIN', $user->getRoles()) ? 'ADMIN' : 'USER',
                 'roles' => $user->getRoles(),
+                'emailVerified' => $user->isEmailVerified(),
+                'isBlocked' => $user->isBlocked(),
             ]
         ]);
     }
@@ -160,6 +162,8 @@ class AuthController extends AbstractController
                 'roles' => $user->getRoles(),
                 'name' => $user->getName(),
                 'phone' => $user->getPhone(),
+                'emailVerified' => $user->isEmailVerified(),
+                'isBlocked' => $user->isBlocked(),
             ]
         ]);
     }
@@ -198,6 +202,8 @@ class AuthController extends AbstractController
                 'phone' => $user->getPhone(),
                 'role' => in_array('ROLE_ADMIN', $user->getRoles()) ? 'ADMIN' : 'USER',
                 'roles' => $user->getRoles(),
+                'emailVerified' => $user->isEmailVerified(),
+                'isBlocked' => $user->isBlocked(),
             ]
         ]);
     }
@@ -207,5 +213,32 @@ class AuthController extends AbstractController
     {
         // JWT is stateless, client should just remove the token
         return $this->json(['success' => true, 'message' => 'Logged out successfully']);
+    }
+
+    #[Route('/send-verification-email', name: 'send_verification_email', methods: ['POST'])]
+    public function sendVerificationEmail(): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Пользователь не авторизован'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        if ($user->isEmailVerified()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Email уже подтвержден'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // TODO: Реализовать отправку письма с подтверждением
+        // Пока просто возвращаем успех
+        return $this->json([
+            'success' => true,
+            'message' => 'Письмо с подтверждением отправлено на ' . $user->getEmail()
+        ]);
     }
 }

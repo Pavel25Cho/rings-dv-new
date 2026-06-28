@@ -110,6 +110,7 @@
 import { computed } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useChatStore } from '@/stores/chat'
+import { useAuthStore } from '@/stores/auth'
 
 defineProps({
   visible: {
@@ -122,6 +123,7 @@ const emit = defineEmits(['close'])
 
 const cartStore = useCartStore()
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 
 const cartItems = computed(() => cartStore.cartItems)
 const cartCount = computed(() => cartStore.cartCount)
@@ -172,6 +174,13 @@ const handleClearCart = async () => {
 }
 
 const handleCheckout = async () => {
+  // Проверяем подтверждение email
+  if (!authStore.user?.emailVerified) {
+    alert('Для оформления заказа необходимо подтвердить email. Перейдите в профиль и отправьте письмо для подтверждения.')
+    emit('close')
+    return
+  }
+
   if (!confirm('Оформить заказ? Все товары из корзины будут добавлены в заказ.')) {
     return
   }

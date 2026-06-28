@@ -8,7 +8,14 @@ export const useChatStore = defineStore('chat', {
     messages: [],
     unreadCount: 0,
     loading: false,
-    sendingMessage: false
+    sendingMessage: false,
+    pagination: {
+      total: 0,
+      limit: 10,
+      offset: 0,
+      hasMore: false
+    },
+    loadingOlderMessages: false
   }),
 
   getters: {
@@ -44,17 +51,56 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    async fetchMessages(chatId) {
-      this.loading = true
+    async fetchMessages(chatId, options = {}) {
+      const { limit = 10, offset = 0, append = false } = options
+      
+      this.loading = !append
+      this.loadingOlderMessages = append
+      
       try {
-        const response = await apiClient.get(`/api/chat/messages/${chatId}`)
+        const response = await apiClient.get(`/api/chat/messages/${chatId}`, {
+          params: { limit, offset }
+        })
+        
         if (response.data.success) {
-          this.messages = response.data.messages
+          if (append) {
+            // Добавляем старые сообщения в начало массива
+            this.messages = [...response.data.messages, ...this.messages]
+          } else {
+            // Заменяем все сообщения
+            this.messages = response.data.messages
+          }
+          
+          // Обновляем информацию о пагинации
+          this.pagination = response.data.pagination
         }
       } catch (error) {
         console.error('Ошибка загрузки сообщений:', error)
       } finally {
         this.loading = false
+        this.loadingOlderMessages = false
+      }
+    },
+
+    async loadOlderMessages(chatId) {
+      if (!this.pagination.hasMore || this.loadingOlderMessages) {
+        return
+      }
+      
+      const newOffset = this.pagination.offset + this.pagination.limit
+      await this.fetchMessages(chatId, {
+        limit: this.pagination.limit,
+        offset: newOffset,
+        append: true
+      })
+    },
+
+    resetPagination() {
+      this.pagination = {
+        total: 0,
+        limit: 10,
+        offset: 0,
+        hasMore: false
       }
     },
 
@@ -194,6 +240,7 @@ export const useChatStore = defineStore('chat', {
 
     clearMessages() {
       this.messages = []
+      this.resetPagination()
     },
 
     updateOrderInMessages(updatedOrder) {

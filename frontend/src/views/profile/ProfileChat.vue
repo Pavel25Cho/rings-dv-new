@@ -7,12 +7,16 @@
       :loading="loading"
       :sending-message="sendingMessage"
       :show-header="true"
+      :has-more-messages="hasMoreMessages"
+      :loading-older-messages="loadingOlderMessages"
       chat-title="Администратор"
       chat-subtitle="Поддержка"
       empty-title="Чат с администратором"
       empty-message="У вас пока нет активного чата. Чат будет создан автоматически при оформлении заказа."
       @send-message="handleSendMessage"
       @order-updated="handleOrderUpdated"
+      @load-older-messages="handleLoadOlderMessages"
+      @file-uploaded="handleFileUploaded"
     />
   </div>
 </template>
@@ -32,6 +36,8 @@ const pollingInterval = ref(null)
 
 const messages = computed(() => chatStore.messages)
 const sendingMessage = computed(() => chatStore.sendingMessage)
+const hasMoreMessages = computed(() => chatStore.pagination.hasMore)
+const loadingOlderMessages = computed(() => chatStore.loadingOlderMessages)
 
 const loadChat = async () => {
   loading.value = true
@@ -39,7 +45,10 @@ const loadChat = async () => {
     await chatStore.fetchMyChat()
     
     if (chatStore.myChat) {
-      await chatStore.fetchMessages(chatStore.myChat.id)
+      // Сбрасываем пагинацию перед загрузкой
+      chatStore.resetPagination()
+      
+      await chatStore.fetchMessages(chatStore.myChat.id, { limit: 10, offset: 0 })
       await chatStore.markAsRead(chatStore.myChat.id)
       
       // Ждем отрисовки и прокручиваем вниз
@@ -53,6 +62,11 @@ const loadChat = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleLoadOlderMessages = async () => {
+  if (!chatStore.myChat) return
+  await chatStore.loadOlderMessages(chatStore.myChat.id)
 }
 
 const handleSendMessage = async (text) => {
@@ -70,13 +84,30 @@ const handleOrderUpdated = (updatedOrder) => {
   chatStore.updateOrderInMessages(updatedOrder)
 }
 
+const handleFileUploaded = async (message) => {
+  // Добавляем новое сообщение с файлом в список
+  chatStore.messages.push(message)
+  
+  await nextTick()
+  chatWindow.value?.scrollToBottom()
+}
+
 const startPolling = () => {
   stopPolling()
   
   pollingInterval.value = setInterval(async () => {
     if (chatStore.myChat) {
       const oldLength = messages.value.length
-      await chatStore.fetchMessages(chatStore.myChat.id)
+      const currentOffset = chatStore.pagination.offset
+      
+      // При поллинге загружаем только последние сообщения (с учетом текущего offset)
+      await chatStore.fetchMessages(chatStore.myChat.id, { 
+        limit: oldLength, 
+        offset: 0 
+      })
+      
+      // Восстанавливаем информацию о пагинации для "загрузить старые сообщения"
+      chatStore.pagination.offset = currentOffset
       
       if (messages.value.length > oldLength) {
         await nextTick()

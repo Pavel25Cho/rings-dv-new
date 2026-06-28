@@ -1,5 +1,6 @@
 parameters:
     upload_directory: '%kernel.project_dir%/public/uploads'
+    chat_uploads_directory: '%kernel.project_dir%/var/chat_uploads'
 
 services:
     _defaults:
@@ -30,3 +31,7 @@ services:
     App\MessageHandler\:
         resource: '../src/MessageHandler/'
         tags: ['messenger.message_handler']
+
+    App\Service\FileUploadService:
+        arguments:
+            $chatUploadsDirectory: '%chat_uploads_directory%'

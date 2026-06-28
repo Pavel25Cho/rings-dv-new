@@ -1,12 +1,32 @@
 <template>
   <div class="space-y-8">
-    <div class="flex items-center gap-6 pb-8 border-b border-gray-300/50">
+    <div class="flex items-start gap-6 pb-8 border-b border-gray-300/50">
       <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-lg">
         {{ userInitial }}
       </div>
-      <div>
-        <h2 class="heading-md mb-2">{{ authStore.user?.email }}</h2>
-        <p class="text-body">Пользователь</p>
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-2">
+          <h2 class="heading-md">{{ authStore.user?.email }}</h2>
+          <span 
+            :class="[
+              'px-3 py-1 rounded-lg text-xs font-bold',
+              authStore.user?.emailVerified 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-yellow-100 text-yellow-800'
+            ]"
+          >
+            {{ authStore.user?.emailVerified ? '✓ Подтвержден' : '⚠ Не подтвержден' }}
+          </span>
+        </div>
+        <p class="text-body mb-3">Пользователь</p>
+        <button
+          v-if="!authStore.user?.emailVerified"
+          @click="sendVerificationEmail"
+          :disabled="sendingEmail"
+          class="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ sendingEmail ? 'Отправка...' : 'Отправить письмо для подтверждения' }}
+        </button>
       </div>
     </div>
 
@@ -64,6 +84,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import apiClient from '@/config/axios'
 
 const authStore = useAuthStore()
 
@@ -73,6 +94,7 @@ const profileData = ref({
 })
 
 const saving = ref(false)
+const sendingEmail = ref(false)
 const message = ref('')
 const messageType = ref('') // 'success' или 'error'
 
@@ -112,6 +134,27 @@ const saveProfile = async () => {
     messageType.value = 'error'
   } finally {
     saving.value = false
+  }
+}
+
+const sendVerificationEmail = async () => {
+  sendingEmail.value = true
+  message.value = ''
+  
+  try {
+    const response = await apiClient.post('/api/auth/send-verification-email')
+    
+    message.value = response.data.message || 'Письмо для подтверждения отправлено на вашу почту'
+    messageType.value = 'success'
+    
+    setTimeout(() => {
+      message.value = ''
+    }, 5000)
+  } catch (error) {
+    message.value = error.response?.data?.message || 'Ошибка при отправке письма'
+    messageType.value = 'error'
+  } finally {
+    sendingEmail.value = false
   }
 }
 </script>

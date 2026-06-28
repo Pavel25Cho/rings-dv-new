@@ -14,9 +14,18 @@
                 v-model="filters.search"
                 type="text"
                 placeholder="Поиск по названию, типу или номеру кольца"
-                class="input pl-12"
+                class="input pl-12 pr-10"
                 @input="fetchGroups"
               />
+              <button
+                v-if="filters.search"
+                @click="clearSearch"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors z-10"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -231,6 +240,11 @@ function openImageModal(url, alt) {
 
 function closeImageModal() {
   imageModalVisible.value = false
+}
+
+function clearSearch() {
+  filters.value.search = ''
+  fetchGroups()
 }
 
 onMounted(() => {

@@ -42,6 +42,9 @@
                       <p class="font-semibold text-gray-900 truncate">
                         {{ chat.user.name || chat.user.email }}
                       </p>
+                      <span v-if="chat.user.isBlocked" class="bg-red-100 text-red-800 text-xs font-bold rounded-full px-2 py-0.5">
+                        Заблокирован
+                      </span>
                       <span v-if="chat.unreadCount > 0" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
                         {{ chat.unreadCount }}
                       </span>
@@ -79,8 +82,13 @@
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <h3 class="font-bold text-white">{{ selectedChat.user.name || selectedChat.user.email }}</h3>
-                  <div class="flex flex-col gap-0.5 text-sm text-purple-100">
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-white">{{ selectedChat.user.name || selectedChat.user.email }}</h3>
+                    <span v-if="selectedChat.user.isBlocked" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                      Заблокирован
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-0.5 text-sm text-purple-100 mt-1">
                     <span v-if="selectedChat.user.phone">{{ selectedChat.user.phone }}</span>
                     <span>{{ selectedChat.user.email }}</span>
                     <span class="text-xs">ID: {{ selectedChat.user.id }}</span>
@@ -97,8 +105,12 @@
                 :loading="loadingMessages"
                 :sending-message="sendingMessage"
                 :show-header="false"
+                :has-more-messages="hasMoreMessages"
+                :loading-older-messages="loadingOlderMessages"
                 @send-message="handleSendMessage"
                 @order-updated="handleOrderUpdated"
+                @load-older-messages="handleLoadOlderMessages"
+                @file-uploaded="handleFileUploaded"
               />
             </div>
           </div>
@@ -110,9 +122,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import ChatWindow from '@/components/ChatWindow.vue'
 
+const route = useRoute()
 const chatStore = useChatStore()
 
 const selectedChat = ref(null)
@@ -121,9 +135,38 @@ const loadingMessages = ref(false)
 const pollingInterval = ref(null)
 const chatWindow = ref(null)
 
-const chats = computed(() => chatStore.chats)
+// Фильтруем чаты: последние 10 с активностью или все с непрочитанными
+// Исключаем чаты с заблокированными пользователями, кроме случая когда открыт конкретный чат по userId
+const chats = computed(() => {
+  const userIdParam = route.query.userId
+  const requestedUserId = userIdParam ? parseInt(userIdParam) : null
+  
+  // Фильтруем заблокированных пользователей, но оставляем запрошенного
+  const allChats = chatStore.chats.filter(chat => {
+    // Если это запрошенный пользователь - показываем
+    if (requestedUserId && chat.user.id === requestedUserId) {
+      return true
+    }
+    // Иначе скрываем заблокированных
+    return !chat.user.isBlocked
+  })
+  
+  const unreadChats = allChats.filter(chat => chat.unreadCount > 0)
+  
+  // Если есть непрочитанные, показываем все непрочитанные + последние 10
+  if (unreadChats.length > 0) {
+    const readChats = allChats.filter(chat => chat.unreadCount === 0).slice(0, 10)
+    return [...unreadChats, ...readChats]
+  }
+  
+  // Иначе показываем последние 10
+  return allChats.slice(0, 10)
+})
+
 const messages = computed(() => chatStore.messages)
 const sendingMessage = computed(() => chatStore.sendingMessage)
+const hasMoreMessages = computed(() => chatStore.pagination.hasMore)
+const loadingOlderMessages = computed(() => chatStore.loadingOlderMessages)
 
 const loadChats = async () => {
   loading.value = true
@@ -141,7 +184,10 @@ const selectChat = async (chat) => {
   loadingMessages.value = true
   
   try {
-    await chatStore.fetchMessages(chat.id)
+    // Сбрасываем пагинацию перед загрузкой нового чата
+    chatStore.resetPagination()
+    
+    await chatStore.fetchMessages(chat.id, { limit: 10, offset: 0 })
     await chatStore.markAsRead(chat.id)
     
     const chatIndex = chats.value.findIndex(c => c.id === chat.id)
@@ -161,6 +207,11 @@ const selectChat = async (chat) => {
   }
 }
 
+const handleLoadOlderMessages = async () => {
+  if (!selectedChat.value) return
+  await chatStore.loadOlderMessages(selectedChat.value.id)
+}
+
 const handleSendMessage = async (text) => {
   if (!selectedChat.value) return
   
@@ -174,6 +225,14 @@ const handleSendMessage = async (text) => {
 const handleOrderUpdated = (updatedOrder) => {
   // Обновляем заказ в сообщениях без перезагрузки
   chatStore.updateOrderInMessages(updatedOrder)
+}
+
+const handleFileUploaded = async (message) => {
+  // Добавляем новое сообщение с файлом в список
+  chatStore.messages.push(message)
+  
+  await nextTick()
+  chatWindow.value?.scrollToBottom()
 }
 
 const formatDate = (dateString) => {
@@ -199,7 +258,19 @@ const startPolling = () => {
     
     if (selectedChat.value) {
       const oldLength = messages.value.length
-      await chatStore.fetchMessages(selectedChat.value.id)
+      
+      // При поллинге загружаем только последние сообщения (с учетом текущего offset)
+      const currentTotal = chatStore.pagination.total
+      const currentOffset = chatStore.pagination.offset
+      
+      // Загружаем последние N сообщений, где N = количество уже загруженных
+      await chatStore.fetchMessages(selectedChat.value.id, { 
+        limit: oldLength, 
+        offset: 0 
+      })
+      
+      // Восстанавливаем информацию о пагинации для "загрузить старые сообщения"
+      chatStore.pagination.offset = currentOffset
       
       const updatedChat = chats.value.find(c => c.id === selectedChat.value.id)
       if (updatedChat) {
@@ -218,8 +289,19 @@ const stopPolling = () => {
   }
 }
 
-onMounted(() => {
-  loadChats()
+onMounted(async () => {
+  await loadChats()
+  
+  // Если в URL есть параметр userId, открываем соответствующий чат
+  const userIdParam = route.query.userId
+  if (userIdParam) {
+    const userId = parseInt(userIdParam)
+    const chat = chatStore.chats.find(c => c.user.id === userId)
+    if (chat) {
+      await selectChat(chat)
+    }
+  }
+  
   startPolling()
 })
 
