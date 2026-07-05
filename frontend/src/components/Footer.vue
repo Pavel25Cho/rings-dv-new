@@ -4,10 +4,8 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg p-1">
+              <img src="/logo_bw.png" alt="Vlad Rings" class="w-full h-full object-contain" />
             </div>
             <h3 class="text-xl font-bold text-gray-900">Vlad Rings</h3>
           </div>

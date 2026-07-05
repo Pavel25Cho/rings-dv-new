@@ -44,11 +44,11 @@ class NotifyUsersUnreadMessagesCommand extends Command
              JOIN u.chats c
              JOIN c.messages m
              WHERE m.isRead = false
+             AND m.emailNotificationSent = false
              AND m.createdAt <= :delayDateTime
              AND m.sender != u
              AND u.roles NOT LIKE :adminRole
-             AND u.emailVerified = true
-             AND (u.emailNotificationSentAt IS NULL OR u.emailNotificationSentAt <= :delayDateTime)'
+             AND u.emailVerified = true'
         )
         ->setParameter('delayDateTime', $delayDateTime)
         ->setParameter('adminRole', '%ROLE_ADMIN%')
@@ -66,6 +66,7 @@ class NotifyUsersUnreadMessagesCommand extends Command
                      JOIN m.chat c
                      WHERE c.user = :user
                      AND m.isRead = false
+                     AND m.emailNotificationSent = false
                      AND m.sender != :user
                      AND m.createdAt <= :delayDateTime'
                 )
@@ -76,8 +77,22 @@ class NotifyUsersUnreadMessagesCommand extends Command
                 if ($unreadCount > 0) {
                     $this->emailService->sendUnreadMessagesNotificationToUser($user, (int)$unreadCount);
                     
-                    // Обновляем время отправки уведомления
-                    $user->setEmailNotificationSentAt(new \DateTime());
+                    // Помечаем отправленные сообщения
+                    $this->entityManager->createQuery(
+                        'UPDATE App\Entity\ChatMessage m
+                         SET m.emailNotificationSent = true
+                         WHERE m.chat IN (
+                             SELECT c FROM App\Entity\Chat c WHERE c.user = :user
+                         )
+                         AND m.isRead = false
+                         AND m.emailNotificationSent = false
+                         AND m.sender != :user
+                         AND m.createdAt <= :delayDateTime'
+                    )
+                    ->setParameter('user', $user)
+                    ->setParameter('delayDateTime', $delayDateTime)
+                    ->execute();
+                    
                     $this->entityManager->flush();
                     
                     $sentCount++;

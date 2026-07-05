@@ -33,6 +33,9 @@ class ChatMessage
     #[ORM\Column(type: 'boolean')]
     private bool $isRead = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $emailNotificationSent = false;
+
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -94,6 +97,17 @@ class ChatMessage
     public function setIsRead(bool $isRead): static
     {
         $this->isRead = $isRead;
+        return $this;
+    }
+
+    public function isEmailNotificationSent(): bool
+    {
+        return $this->emailNotificationSent;
+    }
+
+    public function setEmailNotificationSent(bool $emailNotificationSent): static
+    {
+        $this->emailNotificationSent = $emailNotificationSent;
         return $this;
     }
 

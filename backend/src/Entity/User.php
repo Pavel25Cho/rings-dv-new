@@ -281,6 +281,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function generateVerificationToken(): static
     {
+        if ($this->verificationToken) {
+            return $this;
+        }
+
         $this->verificationToken = bin2hex(random_bytes(32));
         return $this;
     }

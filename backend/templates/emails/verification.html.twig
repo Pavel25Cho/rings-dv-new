@@ -5,70 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Подтверждение регистрации</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
             line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
+            color: #1f2937;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
         }
         .container {
-            background-color: #f4f4f4;
-            border-radius: 5px;
-            padding: 30px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(31, 38, 135, 0.3);
         }
         .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
             text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logo-wrapper {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            padding: 2px;
+            margin-right: 20px;
+        }
+        .logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .logo-text {
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 0.5px;
         }
         .content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 5px;
+            padding: 40px 30px;
+            background: white;
+        }
+        h2 {
+            color: #1f2937;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        p {
+            color: #374151;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        .button-wrapper {
+            text-align: center;
+            margin: 32px 0;
         }
         .button {
             display: inline-block;
-            padding: 12px 30px;
-            background-color: #007bff;
-            color: white;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
             text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 18px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
         }
         .button:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+            transform: translateY(-2px);
+        }
+        .link-box {
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 24px 0;
+            word-break: break-all;
+            border-left: 4px solid #667eea;
+        }
+        .link-box a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .info-text {
+            margin-top: 32px;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.8);
+            border-radius: 12px;
+            color: #6b7280;
+            font-size: 14px;
+            text-align: center;
         }
         .footer {
+            background: #f9fafb;
+            padding: 24px 30px;
             text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
-            color: #666;
+            color: #6b7280;
+            font-size: 13px;
+        }
+        .footer p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 13px;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+            margin: 24px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Rings Catalog</h1>
+            <div class="logo-container">
+                <div class="logo-wrapper">
+                    <img src="{{ app.request.schemeAndHttpHost }}/logo_bw.png" alt="Vlad Rings" class="logo">
+                </div>
+                <span class="logo-text">Vlad Rings</span>
+            </div>
         </div>
         <div class="content">
             <h2>Подтверждение регистрации</h2>
             <p>Здравствуйте!</p>
-            <p>Спасибо за регистрацию в нашем каталоге автомобильных колец.</p>
+            <p>Спасибо за регистрацию в каталоге уплотнений и колец для гидроцилиндров Vlad Rings. Мы рады приветствовать вас!</p>
             <p>Для завершения регистрации и подтверждения вашего email адреса, пожалуйста, нажмите на кнопку ниже:</p>
             
-            <div style="text-align: center;">
+            <div class="button-wrapper">
                 <a href="{{ verificationUrl }}" class="button">Подтвердить email</a>
             </div>
             
-            <p>Или скопируйте и вставьте эту ссылку в ваш браузер:</p>
-            <p style="word-break: break-all; color: #007bff;">{{ verificationUrl }}</p>
+            <div class="divider"></div>
             
-            <p style="margin-top: 30px; color: #666;">Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+            <p style="text-align: center; font-size: 14px; color: #6b7280;">Или скопируйте и вставьте эту ссылку в ваш браузер:</p>
+            <div class="link-box">
+                <a href="{{ verificationUrl }}">{{ verificationUrl }}</a>
+            </div>
+            
+            <div class="info-text">
+                Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо. Никаких изменений в вашей учетной записи не произойдет.
+            </div>
         </div>
         <div class="footer">
-            <p>&copy; {{ "now"|date("Y") }} Rings Catalog. Все права защищены.</p>
+            <p>&copy; {{ "now"|date("Y") }} Vlad Rings. Все права защищены.</p>
         </div>
     </div>
 </body>

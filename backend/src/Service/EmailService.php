@@ -34,6 +34,7 @@ class EmailService
                 ->context([
                     'user' => $user,
                     'verificationUrl' => $verificationUrl,
+                    'baseUrl' => $frontendUrl,
                 ]);
 
             $this->mailer->send($email);
@@ -58,7 +59,7 @@ class EmailService
             $smtpFrom = $this->params->get('app.smtp_from');
             $frontendUrl = $this->params->get('app.frontend_url');
             
-            $chatUrl = $frontendUrl . '/chat';
+            $chatUrl = $frontendUrl . '/profile/chat';
 
             $email = (new TemplatedEmail())
                 ->from(new Address($smtpFrom, 'Rings Catalog'))
@@ -69,6 +70,7 @@ class EmailService
                     'user' => $user,
                     'unreadCount' => $unreadCount,
                     'chatUrl' => $chatUrl,
+                    'baseUrl' => $frontendUrl,
                 ]);
 
             $this->mailer->send($email);
@@ -105,6 +107,7 @@ class EmailService
                     'totalUnreadCount' => $totalUnreadCount,
                     'chatsInfo' => $chatsInfo,
                     'adminChatUrl' => $adminChatUrl,
+                    'baseUrl' => $frontendUrl,
                 ]);
 
             $this->mailer->send($email);

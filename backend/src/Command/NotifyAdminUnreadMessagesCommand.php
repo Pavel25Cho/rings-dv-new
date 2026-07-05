@@ -60,6 +60,7 @@ class NotifyAdminUnreadMessagesCommand extends Command
              JOIN c.messages m
              JOIN m.sender s
              WHERE m.isRead = false
+             AND m.emailNotificationSent = false
              AND m.createdAt <= :delayDateTime
              AND s.roles NOT LIKE :adminRole'
         )
@@ -83,6 +84,7 @@ class NotifyAdminUnreadMessagesCommand extends Command
                  JOIN m.sender s
                  WHERE m.chat = :chat
                  AND m.isRead = false
+                 AND m.emailNotificationSent = false
                  AND m.createdAt <= :delayDateTime
                  AND s.roles NOT LIKE :adminRole'
             )
@@ -92,29 +94,11 @@ class NotifyAdminUnreadMessagesCommand extends Command
             ->getSingleScalarResult();
 
             if ($unreadCount > 0) {
-                // Получаем последнее непрочитанное сообщение
-                $lastMessage = $this->entityManager->createQuery(
-                    'SELECT m
-                     FROM App\Entity\ChatMessage m
-                     JOIN m.sender s
-                     WHERE m.chat = :chat
-                     AND m.isRead = false
-                     AND m.createdAt <= :delayDateTime
-                     AND s.roles NOT LIKE :adminRole
-                     ORDER BY m.createdAt DESC'
-                )
-                ->setParameter('chat', $chat)
-                ->setParameter('delayDateTime', $delayDateTime)
-                ->setParameter('adminRole', '%ROLE_ADMIN%')
-                ->setMaxResults(1)
-                ->getOneOrNullResult();
-
                 $user = $chat->getUser();
                 $chatsInfo[] = [
                     'userName' => $user->getName(),
                     'userEmail' => $user->getEmail(),
                     'unreadCount' => (int)$unreadCount,
-                    'lastMessage' => $lastMessage ? $lastMessage->getMessageText() : null,
                 ];
                 
                 $totalUnreadCount += (int)$unreadCount;
@@ -139,6 +123,38 @@ class NotifyAdminUnreadMessagesCommand extends Command
                 } catch (\Exception $e) {
                     $errorCount++;
                     $io->error("Ошибка при отправке уведомления админу {$admin->getEmail()}: {$e->getMessage()}");
+                }
+            }
+
+            // Помечаем отправленные сообщения от пользователей
+            if ($sentCount > 0) {
+                // Сначала получаем ID всех сообщений, которые нужно пометить
+                $messageIdsToUpdate = $this->entityManager->createQuery(
+                    'SELECT m.id
+                     FROM App\Entity\ChatMessage m
+                     JOIN m.sender s
+                     WHERE m.isRead = false
+                     AND m.emailNotificationSent = false
+                     AND m.createdAt <= :delayDateTime
+                     AND s.roles NOT LIKE :adminRole'
+                )
+                ->setParameter('delayDateTime', $delayDateTime)
+                ->setParameter('adminRole', '%ROLE_ADMIN%')
+                ->getResult();
+                
+                if (!empty($messageIdsToUpdate)) {
+                    $ids = array_column($messageIdsToUpdate, 'id');
+                    
+                    // Теперь обновляем по списку ID
+                    $this->entityManager->createQuery(
+                        'UPDATE App\Entity\ChatMessage m
+                         SET m.emailNotificationSent = true
+                         WHERE m.id IN (:ids)'
+                    )
+                    ->setParameter('ids', $ids)
+                    ->execute();
+                    
+                    $this->entityManager->flush();
                 }
             }
 
