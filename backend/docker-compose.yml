@@ -29,7 +29,6 @@ services:
     depends_on:
       - mysql
       - redis
-      - mailhog
     networks:
       - rings_network
 
@@ -59,16 +58,6 @@ services:
       - "6380:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - rings_network
-
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: rings_mailhog
-    restart: unless-stopped
-    ports:
-      - "8025:8025"
-      - "1025:1025"
     networks:
       - rings_network
 
