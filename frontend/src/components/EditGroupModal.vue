@@ -168,14 +168,14 @@
                 >
                   {{ deleting ? 'Удаление...' : 'Удалить' }}
                 </button>
-                <button
+                <!-- <button
                   type="button"
                   @click="closeModal"
                   :disabled="saving || uploading || deleting"
                   class="px-6 py-3 bg-gray-300 text-gray-900 rounded-xl hover:bg-gray-400 transition-colors font-semibold disabled:opacity-50"
                 >
                   Отмена
-                </button>
+                </button> -->
               </div>
             </form>
           </div>

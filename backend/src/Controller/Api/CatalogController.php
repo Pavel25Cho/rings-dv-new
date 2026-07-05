@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Ring;
 use App\Entity\RingGroup;
+use App\Entity\SiteSetting;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -116,5 +117,35 @@ class CatalogController extends AbstractController
         $rings = $qb->getQuery()->getResult();
 
         return $this->json($rings);
+    }
+
+    #[Route('/content', name: 'content', methods: ['GET'])]
+    public function getContent(): JsonResponse
+    {
+        $settingsRepo = $this->entityManager->getRepository(SiteSetting::class);
+        
+        $defaultSettings = [
+            'hero_title' => 'Каталог автомобильных колец',
+            'hero_description' => 'Качественные кольца для вашего автомобиля. Широкий ассортимент, быстрая доставка по всей стране.',
+            'feature_quality_title' => 'Высокое качество',
+            'feature_quality_text' => 'Все товары сертифицированы и соответствуют международным стандартам качества',
+            'feature_delivery_title' => 'Быстрая доставка',
+            'feature_delivery_text' => 'Оперативная отправка заказов во все регионы страны',
+            'feature_support_title' => 'Поддержка клиентов',
+            'feature_support_text' => 'Профессиональная консультация и помощь в выборе товара',
+            'about_title' => 'О компании',
+            'about_text' => "Добро пожаловать в наш каталог! Мы специализируемся на поставке качественных автомобильных колец различных типов и размеров.\n\nНаш ассортимент включает кольца для различных марок автомобилей и специальной техники. Все товары сертифицированы и соответствуют международным стандартам качества.\n\nМы работаем как с розничными покупателями, так и с корпоративными клиентами, предлагая гибкие условия сотрудничества и индивидуальный подход к каждому заказу.",
+            'footer_description' => 'Качественные автомобильные кольца для вашего транспорта',
+            'footer_email' => 'info@vlad-rings.ru',
+            'footer_inn' => 'будет указан'
+        ];
+        
+        $result = [];
+        foreach ($defaultSettings as $key => $defaultValue) {
+            $setting = $settingsRepo->findOneBy(['settingKey' => $key]);
+            $result[$key] = $setting ? $setting->getSettingValue() : $defaultValue;
+        }
+        
+        return $this->json($result);
     }
 }

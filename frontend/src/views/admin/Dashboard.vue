@@ -84,15 +84,15 @@
             </svg>
             <span>Импорт данных</span>
           </router-link>
-          <router-link 
-            to="/admin/chats" 
-            class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900"
+          <button 
+            @click="openEditContentModal"
+            class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900 cursor-pointer"
           >
             <svg class="w-8 h-8 mr-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            <span>Открыть чаты</span>
-          </router-link>
+            <span>Редактировать главную</span>
+          </button>
         </div>
         
       </div>
@@ -114,6 +114,12 @@
       @close="showRingModal = false"
       @saved="handleRingCreated"
     />
+
+    <EditContentModal
+      :visible="showContentModal"
+      @close="showContentModal = false"
+      @saved="handleContentSaved"
+    />
   </div>
 </template>
 
@@ -123,6 +129,7 @@ import { useRouter } from 'vue-router'
 import apiClient from '@/config/axios'
 import EditGroupModal from '@/components/EditGroupModal.vue'
 import EditRingModal from '@/components/EditRingModal.vue'
+import EditContentModal from '@/components/EditContentModal.vue'
 
 const router = useRouter()
 
@@ -137,6 +144,7 @@ const stats = ref({
 const groups = ref([])
 const showGroupModal = ref(false)
 const showRingModal = ref(false)
+const showContentModal = ref(false)
 
 const goToHome = () => {
   router.push('/')
@@ -176,6 +184,14 @@ const handleGroupCreated = async () => {
 const handleRingCreated = async () => {
   showRingModal.value = false
   await loadStats()
+}
+
+const openEditContentModal = () => {
+  showContentModal.value = true
+}
+
+const handleContentSaved = () => {
+  showContentModal.value = false
 }
 
 const loadGroups = async () => {
