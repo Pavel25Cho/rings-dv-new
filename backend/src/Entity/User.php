@@ -34,6 +34,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'boolean')]
     private bool $emailVerified = false;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $receiver = false;
+
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
+    private ?string $verificationToken = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $emailNotificationSentAt = null;
+
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -256,6 +265,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmailVerified(bool $emailVerified): static
     {
         $this->emailVerified = $emailVerified;
+        return $this;
+    }
+
+    public function getVerificationToken(): ?string
+    {
+        return $this->verificationToken;
+    }
+
+    public function setVerificationToken(?string $verificationToken): static
+    {
+        $this->verificationToken = $verificationToken;
+        return $this;
+    }
+
+    public function generateVerificationToken(): static
+    {
+        $this->verificationToken = bin2hex(random_bytes(32));
+        return $this;
+    }
+
+    public function getEmailNotificationSentAt(): ?\DateTimeInterface
+    {
+        return $this->emailNotificationSentAt;
+    }
+
+    public function setEmailNotificationSentAt(?\DateTimeInterface $emailNotificationSentAt): static
+    {
+        $this->emailNotificationSentAt = $emailNotificationSentAt;
+        return $this;
+    }
+
+    public function isReceiver(): bool
+    {
+        return $this->receiver;
+    }
+
+    public function setReceiver(bool $receiver): static
+    {
+        $this->receiver = $receiver;
         return $this;
     }
 }

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новые сообщения в чатах</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f4f4f4;
+            border-radius: 5px;
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .count-badge {
+            display: inline-block;
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .chat-list {
+            margin: 20px 0;
+        }
+        .chat-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .chat-user {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Rings Catalog - Админ панель</h1>
+        </div>
+        <div class="content">
+            <h2>Новые сообщения в чатах</h2>
+            <p>Здравствуйте!</p>
+            <p>У вас есть непрочитанные сообщения от клиентов:</p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span class="count-badge">{{ totalUnreadCount }} {% if totalUnreadCount == 1 %}сообщение{% elseif totalUnreadCount < 5 %}сообщения{% else %}сообщений{% endif %}</span>
+            </div>
+            
+            {% if chatsInfo|length > 0 %}
+                <div class="chat-list">
+                    <h3>Чаты с непрочитанными сообщениями:</h3>
+                    {% for chat in chatsInfo %}
+                        <div class="chat-item">
+                            <div class="chat-user">{{ chat.userName ? chat.userName : chat.userEmail }}</div>
+                            <div>Email: {{ chat.userEmail }}</div>
+                            <div>Непрочитанных: {{ chat.unreadCount }}</div>
+                            {% if chat.lastMessage %}
+                                <div style="margin-top: 10px; color: #666; font-size: 14px;">
+                                    Последнее сообщение: {{ chat.lastMessage|slice(0, 100) }}{% if chat.lastMessage|length > 100 %}...{% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div style="text-align: center;">
+                <a href="{{ adminChatUrl }}" class="button">Перейти в админ панель</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ "now"|date("Y") }} Rings Catalog. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

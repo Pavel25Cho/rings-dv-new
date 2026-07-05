@@ -55,8 +55,16 @@
         </div>
       </div>
       
-      <div class="border-t border-gray-300/50 mt-8 pt-8 text-center">
-        <p class="text-base font-semibold text-gray-700">&copy; {{ currentYear }} vlad-rings.ru. Все права защищены.</p>
+      <div class="border-t border-gray-300/50 mt-8 pt-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <p class="text-base font-semibold text-gray-700">&copy; {{ currentYear }} vlad-rings.ru. Все права защищены.</p>
+          <router-link 
+            to="/privacy-policy" 
+            class="text-base font-medium text-gray-700 hover:text-purple-600 transition-colors"
+          >
+            Политика конфиденциальности
+          </router-link>
+        </div>
       </div>
     </div>
   </footer>

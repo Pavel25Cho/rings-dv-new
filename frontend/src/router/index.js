@@ -87,6 +87,11 @@ const routes = [
     name: 'AdminClients',
     component: () => import('@/views/admin/Clients.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/privacy-policy',
+    name: 'PrivacyPolicy',
+    component: () => import('@/views/PrivacyPolicy.vue')
   }
 ]
 

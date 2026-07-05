@@ -176,7 +176,7 @@ const handleClearCart = async () => {
 const handleCheckout = async () => {
   // Проверяем подтверждение email
   if (!authStore.user?.emailVerified) {
-    alert('Для оформления заказа необходимо подтвердить email. Перейдите в профиль и отправьте письмо для подтверждения.')
+    alert('Для оформления заказа необходимо подтвердить email. Перейдите в личный кабинет и отправьте письмо для подтверждения.')
     emit('close')
     return
   }

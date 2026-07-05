@@ -128,6 +128,7 @@
                     </router-link>
                     
                     <router-link 
+                      v-if="!authStore.isAdmin"
                       to="/profile/chat" 
                       class="menu-item relative"
                       @click="closeProfileMenu"

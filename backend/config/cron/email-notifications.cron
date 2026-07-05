@@ -1,0 +1,19 @@
+# Cron configuration for Rings Catalog email notifications
+# 
+# Эти команды должны выполняться каждые 5 минут для проверки непрочитанных сообщений
+# 
+# Установка:
+# 1. Скопируйте этот файл в /etc/cron.d/rings-notifications или
+# 2. Добавьте эти строки в crontab: crontab -e
+# 
+# Для Docker окружения команды должны выполняться внутри PHP контейнера
+
+# Проверка и отправка уведомлений пользователям о непрочитанных сообщениях (каждые 5 минут)
+*/5 * * * * cd /var/www/backend && php bin/console app:notify-users-unread-messages >> /var/log/notify-users.log 2>&1
+
+# Проверка и отправка уведомлений админу о непрочитанных сообщениях (каждые 5 минут)
+*/5 * * * * cd /var/www/backend && php bin/console app:notify-admin-unread-messages >> /var/log/notify-admin.log 2>&1
+
+# Примечание: для запуска внутри Docker контейнера используйте:
+# */5 * * * * docker exec rings_php php /var/www/backend/bin/console app:notify-users-unread-messages >> /var/log/notify-users.log 2>&1
+# */5 * * * * docker exec rings_php php /var/www/backend/bin/console app:notify-admin-unread-messages >> /var/log/notify-admin.log 2>&1

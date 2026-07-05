@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\User;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +21,8 @@ class AuthController extends AbstractController
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
         private ValidatorInterface $validator,
-        private JWTTokenManagerInterface $jwtManager
+        private JWTTokenManagerInterface $jwtManager,
+        private EmailService $emailService
     ) {
     }
 
@@ -73,16 +75,29 @@ class AuthController extends AbstractController
         
         $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
         $user->setPassword($hashedPassword);
+        
+        // Генерируем токен для подтверждения email
+        $user->generateVerificationToken();
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
+        // Отправляем письмо с подтверждением
+        try {
+            $this->emailService->sendVerificationEmail($user);
+        } catch (\Exception $e) {
+            // Логируем ошибку, но не прерываем регистрацию
+            // Пользователь сможет переотправить письмо позже
+        }
+
         return $this->json([
             'success' => true,
+            'message' => 'Регистрация успешна. Проверьте почту для подтверждения email.',
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
                 'roles' => $user->getRoles(),
+                'emailVerified' => $user->isEmailVerified(),
             ]
         ], Response::HTTP_CREATED);
     }
@@ -234,11 +249,61 @@ class AuthController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // TODO: Реализовать отправку письма с подтверждением
-        // Пока просто возвращаем успех
+        // Генерируем новый токен
+        $user->generateVerificationToken();
+        $this->entityManager->flush();
+
+        try {
+            $this->emailService->sendVerificationEmail($user);
+            
+            return $this->json([
+                'success' => true,
+                'message' => 'Письмо с подтверждением отправлено на ' . $user->getEmail()
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Ошибка при отправке письма. Попробуйте позже.'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/verify-email', name: 'verify_email', methods: ['POST'])]
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!isset($data['token']) || empty($data['token'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Токен не указан'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user = $this->entityManager->getRepository(User::class)
+            ->findOneBy(['verificationToken' => $data['token']]);
+
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Неверный или устаревший токен'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($user->isEmailVerified()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Email уже был подтвержден ранее'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user->setEmailVerified(true);
+        $user->setVerificationToken(null);
+        $this->entityManager->flush();
+
         return $this->json([
             'success' => true,
-            'message' => 'Письмо с подтверждением отправлено на ' . $user->getEmail()
+            'message' => 'Email успешно подтвержден'
         ]);
     }
 }

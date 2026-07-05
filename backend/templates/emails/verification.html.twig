@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение регистрации</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f4f4f4;
+            border-radius: 5px;
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Rings Catalog</h1>
+        </div>
+        <div class="content">
+            <h2>Подтверждение регистрации</h2>
+            <p>Здравствуйте!</p>
+            <p>Спасибо за регистрацию в нашем каталоге автомобильных колец.</p>
+            <p>Для завершения регистрации и подтверждения вашего email адреса, пожалуйста, нажмите на кнопку ниже:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ verificationUrl }}" class="button">Подтвердить email</a>
+            </div>
+            
+            <p>Или скопируйте и вставьте эту ссылку в ваш браузер:</p>
+            <p style="word-break: break-all; color: #007bff;">{{ verificationUrl }}</p>
+            
+            <p style="margin-top: 30px; color: #666;">Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ "now"|date("Y") }} Rings Catalog. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

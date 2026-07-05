@@ -1,6 +1,9 @@
 parameters:
     upload_directory: '%kernel.project_dir%/public/uploads'
     chat_uploads_directory: '%kernel.project_dir%/var/chat_uploads'
+    app.smtp_from: '%env(SMTP_FROM)%'
+    app.frontend_url: '%env(FRONTEND_URL)%'
+    app.admin_email: '%env(ADMIN_EMAIL)%'
 
 services:
     _defaults:

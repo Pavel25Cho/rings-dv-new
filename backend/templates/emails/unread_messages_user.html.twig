@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новые сообщения</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f4f4f4;
+            border-radius: 5px;
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .count-badge {
+            display: inline-block;
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Rings Catalog</h1>
+        </div>
+        <div class="content">
+            <h2>У вас есть непрочитанные сообщения</h2>
+            <p>Здравствуйте{% if user.name %}, {{ user.name }}{% endif %}!</p>
+            <p>У вас есть новые сообщения в чате:</p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span class="count-badge">{{ unreadCount }} {% if unreadCount == 1 %}сообщение{% elseif unreadCount < 5 %}сообщения{% else %}сообщений{% endif %}</span>
+            </div>
+            
+            <p>Перейдите в чат, чтобы прочитать сообщения и ответить:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ chatUrl }}" class="button">Перейти в чат</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ "now"|date("Y") }} Rings Catalog. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

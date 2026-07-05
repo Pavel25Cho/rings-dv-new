@@ -2,4 +2,6 @@ framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
         envelope:
-            sender: '%env(ADMIN_EMAIL)%'
+            sender: '%env(SMTP_FROM)%'
+        headers:
+            From: '%env(SMTP_FROM)%'
