@@ -63,7 +63,7 @@
 
             <div class="flex-1 flex flex-col overflow-hidden">
               <div v-if="loading" class="text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600"></div>
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-700"></div>
                 <p class="mt-4 text-gray-600">Загрузка колец...</p>
               </div>
 
@@ -189,7 +189,7 @@
                         <td class="px-6 py-4">
                           <button
                             @click="addToCart(ring)"
-                            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold whitespace-nowrap"
+                            class="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-semibold whitespace-nowrap"
                           >
                             В корзину
                           </button>

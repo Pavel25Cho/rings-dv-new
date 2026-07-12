@@ -31,7 +31,7 @@
         </div>
 
       <div v-if="loading" class="glass-card rounded-2xl text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600"></div>
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-700"></div>
         <p class="mt-4 text-body">Загрузка...</p>
       </div>
 
@@ -93,7 +93,7 @@
                   <div class="font-bold text-gray-900 text-base">
                     {{ group.nameRu || group.typeCode }}
                   </div>
-                  <div v-if="group.materialEn" class="text-sm text-purple-600 mt-1">
+                  <div v-if="group.materialEn" class="text-sm text-blue-700 mt-1">
                     Материал: {{ group.materialEn }}
                   </div>
                 </td>
@@ -113,7 +113,7 @@
                 <td class="px-6 py-4">
                   <button
                     @click="openGroupModal(group)"
-                    class="px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold"
+                    class="px-5 py-2.5 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors font-semibold"
                   >
                     Открыть
                   </button>

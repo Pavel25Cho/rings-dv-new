@@ -10,7 +10,7 @@
       </div>
 
       <div v-if="loading" class="p-8 text-center">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-purple-600"></div>
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-700"></div>
         <p class="mt-3 text-gray-600 text-sm">Загрузка...</p>
       </div>
 
@@ -38,7 +38,7 @@
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-gray-900 text-sm truncate">{{ item.ring?.partNumber }}</p>
               <p class="text-xs text-gray-600 truncate mt-0.5">{{ item.ring?.group?.nameRu }}</p>
-              <p class="text-purple-600 font-bold text-sm mt-1">{{ item.ring?.price }} ₽</p>
+              <p class="text-blue-700 font-bold text-sm mt-1">{{ item.ring?.price }} ₽</p>
               
               <div class="flex items-center gap-2 mt-2">
                 <button
@@ -79,17 +79,17 @@
       </div>
 
       <div v-if="cartItems.length > 0" class="border-t border-gray-200/50">
-        <div class="px-5 py-3 bg-purple-50/50">
+        <div class="px-5 py-3 bg-blue-50/50">
           <div class="flex justify-between items-center">
             <span class="text-gray-700 font-semibold">Итого:</span>
-            <span class="text-purple-600 font-bold text-xl">{{ cartTotal }} ₽</span>
+            <span class="text-blue-700 font-bold text-xl">{{ cartTotal }} ₽</span>
           </div>
         </div>
         
         <div class="p-3 space-y-2">
           <button
             @click="handleCheckout"
-            class="w-full px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold"
+            class="w-full px-4 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors font-semibold"
           >
             Перейти к заказу
           </button>

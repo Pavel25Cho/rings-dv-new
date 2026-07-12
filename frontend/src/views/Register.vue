@@ -2,7 +2,7 @@
   <div class="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full glass-card-strong rounded-3xl p-10 shadow-glass-xl">
       <div class="text-center mb-8">
-        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center mb-6 shadow-lg">
           <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>
@@ -83,7 +83,7 @@
         <div class="text-center pt-4">
           <p class="text-base font-medium text-gray-700">
             Уже есть аккаунт?
-            <router-link to="/login" class="font-bold text-purple-600 hover:text-purple-700 transition-colors">
+            <router-link to="/login" class="font-bold text-blue-700 hover:text-blue-800 transition-colors">
               Войти
             </router-link>
           </p>

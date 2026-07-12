@@ -5,7 +5,7 @@
 @layer base {
   body {
     @apply text-gray-900 antialiased;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #0066cc 100%);
     background-attachment: fixed;
     min-height: 100vh;
   }
@@ -49,12 +49,12 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #0066cc 100%);
     @apply text-white shadow-lg hover:shadow-xl transform hover:scale-105;
   }
   
   .btn-primary:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+    background: linear-gradient(135deg, #1a2a3a 0%, #0052a3 100%);
   }
 
   .btn-secondary {
@@ -76,14 +76,14 @@
   
   .input:focus {
     background: rgba(255, 255, 255, 1);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
-    @apply ring-purple-500;
+    box-shadow: 0 8px 24px rgba(0, 102, 204, 0.15);
+    @apply ring-blue-600;
   }
 
   /* Typography */
   .heading-hero {
     @apply text-6xl md:text-7xl font-bold leading-tight;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #0066cc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -108,7 +108,7 @@
 
   /* Gradient Overlay */
   .gradient-overlay {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.1) 0%, rgba(0, 102, 204, 0.1) 100%);
   }
 }
 

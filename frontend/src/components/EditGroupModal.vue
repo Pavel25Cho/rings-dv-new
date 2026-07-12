@@ -155,7 +155,7 @@
                 <button
                   type="submit"
                   :disabled="saving || uploading || deleting"
-                  class="flex-1 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold disabled:opacity-50"
+                  class="flex-1 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors font-semibold disabled:opacity-50"
                 >
                   {{ uploading ? 'Загрузка фото...' : (saving ? 'Сохранение...' : 'Сохранить') }}
                 </button>

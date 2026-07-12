@@ -3,7 +3,7 @@
     <div class="max-w-md w-full glass-card-strong rounded-3xl p-10 shadow-glass-xl">
       <!-- Loading State -->
       <div v-if="loading" class="text-center">
-        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center mb-6 shadow-lg">
           <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div>
         </div>
         <h2 class="heading-lg mb-3">Проверка...</h2>

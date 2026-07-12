@@ -6,7 +6,7 @@
           <h1 class="heading-lg">Импорт данных из Excel</h1>
           <router-link 
             to="/admin"
-            class="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors font-bold"
+            class="flex items-center gap-2 text-gray-600 hover:text-blue-700 transition-colors font-bold"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -21,7 +21,7 @@
             @click="activeTab = 'rings'"
             class="px-6 py-3 font-bold text-base transition-colors border-b-2"
             :class="activeTab === 'rings' 
-              ? 'text-purple-600 border-purple-600' 
+              ? 'text-blue-700 border-blue-700' 
               : 'text-gray-500 border-transparent hover:text-gray-700'"
           >
             Импорт товаров
@@ -30,7 +30,7 @@
             @click="activeTab = 'prices'"
             class="px-6 py-3 font-bold text-base transition-colors border-b-2"
             :class="activeTab === 'prices' 
-              ? 'text-purple-600 border-purple-600' 
+              ? 'text-blue-700 border-blue-700' 
               : 'text-gray-500 border-transparent hover:text-gray-700'"
           >
             Импорт цен и количества
@@ -59,7 +59,7 @@
 
           <div 
             class="glass-card rounded-3xl p-12 text-center border-2 border-dashed transition-all"
-            :class="isDragging ? 'border-purple-500 bg-purple-50/50' : 'border-gray-300'"
+            :class="isDragging ? 'border-blue-600 bg-blue-50/50' : 'border-gray-300'"
             @dragover.prevent="isDragging = true"
             @dragleave.prevent="isDragging = false"
             @drop.prevent="handleFileDrop"
@@ -73,7 +73,7 @@
             />
 
             <template v-if="!uploading && !result">
-              <svg class="w-20 h-20 mx-auto mb-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-20 h-20 mx-auto mb-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               
@@ -114,7 +114,7 @@
             </template>
 
             <template v-if="uploading">
-              <div class="inline-block animate-spin rounded-full h-20 w-20 border-4 border-gray-300 border-t-purple-600 mb-6"></div>
+              <div class="inline-block animate-spin rounded-full h-20 w-20 border-4 border-gray-300 border-t-blue-700 mb-6"></div>
               <h3 class="heading-md mb-3">Импорт данных...</h3>
               <p class="text-body">Пожалуйста, подождите</p>
             </template>
@@ -132,7 +132,7 @@
                   <div class="space-y-3">
                     <div class="flex justify-between items-center">
                       <span class="text-base text-gray-700">Создано групп:</span>
-                      <span class="font-bold text-lg text-purple-600">{{ result.stats.groups_created }}</span>
+                      <span class="font-bold text-lg text-blue-700">{{ result.stats.groups_created }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-base text-gray-700">Обновлено групп:</span>
@@ -140,7 +140,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-base text-gray-700">Создано колец:</span>
-                      <span class="font-bold text-lg text-purple-600">{{ result.stats.rings_created }}</span>
+                      <span class="font-bold text-lg text-blue-700">{{ result.stats.rings_created }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-base text-gray-700">Обновлено колец:</span>

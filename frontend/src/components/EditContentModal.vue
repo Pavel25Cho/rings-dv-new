@@ -27,7 +27,7 @@
               <form @submit.prevent="saveContent" class="space-y-8">
                 <!-- Hero Section -->
                 <div class="glass-card p-6 rounded-2xl">
-                  <h3 class="text-xl font-bold text-purple-600 mb-4">🎯 Главный баннер</h3>
+                  <h3 class="text-xl font-bold text-blue-700 mb-4">🎯 Главный баннер</h3>
                   <div class="space-y-4">
                     <div>
                       <label class="block text-sm font-bold text-gray-900 mb-2">Заголовок</label>
@@ -54,10 +54,10 @@
 
                 <!-- Features Section -->
                 <div class="glass-card p-6 rounded-2xl">
-                  <h3 class="text-xl font-bold text-purple-600 mb-4">⭐ Преимущества</h3>
+                  <h3 class="text-xl font-bold text-blue-700 mb-4">⭐ Преимущества</h3>
                   
                   <!-- Feature 1: Quality -->
-                  <div class="mb-6 p-4 bg-purple-50 rounded-xl">
+                  <div class="mb-6 p-4 bg-blue-50 rounded-xl">
                     <h4 class="text-base font-bold text-gray-900 mb-3">Блок 1</h4>
                     <div class="space-y-3">
                       <div>
@@ -84,7 +84,7 @@
                   </div>
 
                   <!-- Feature 2: Delivery -->
-                  <div class="mb-6 p-4 bg-purple-50 rounded-xl">
+                  <div class="mb-6 p-4 bg-blue-50 rounded-xl">
                     <h4 class="text-base font-bold text-gray-900 mb-3">Блок 2</h4>
                     <div class="space-y-3">
                       <div>
@@ -111,7 +111,7 @@
                   </div>
 
                   <!-- Feature 3: Support -->
-                  <div class="p-4 bg-purple-50 rounded-xl">
+                  <div class="p-4 bg-blue-50 rounded-xl">
                     <h4 class="text-base font-bold text-gray-900 mb-3">Блок 3</h4>
                     <div class="space-y-3">
                       <div>
@@ -140,7 +140,7 @@
 
                 <!-- About Section -->
                 <div class="glass-card p-6 rounded-2xl">
-                  <h3 class="text-xl font-bold text-purple-600 mb-4">ℹ️ О компании</h3>
+                  <h3 class="text-xl font-bold text-blue-700 mb-4">ℹ️ О компании</h3>
                   <div class="space-y-4">
                     <div>
                       <label class="block text-sm font-bold text-gray-900 mb-2">Заголовок секции</label>
@@ -167,7 +167,7 @@
 
                 <!-- Footer Section -->
                 <div class="glass-card p-6 rounded-2xl">
-                  <h3 class="text-xl font-bold text-purple-600 mb-4">📧 Футер</h3>
+                  <h3 class="text-xl font-bold text-blue-700 mb-4">📧 Футер</h3>
                   <div class="space-y-4">
                     <div>
                       <label class="block text-sm font-bold text-gray-900 mb-2">Описание компании</label>

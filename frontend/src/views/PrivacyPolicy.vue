@@ -58,7 +58,7 @@
             <h2 class="text-lg font-bold text-gray-900">5. Контактная информация</h2>
             <p class="text-gray-700">
               По всем вопросам, касающимся обработки персональных данных, вы можете обратиться к нам по электронной почте: 
-              <a href="mailto:info@vlad-rings.ru" class="text-purple-600 hover:text-purple-700 font-semibold">info@vlad-rings.ru</a>
+              <a href="mailto:info@vlad-rings.ru" class="text-blue-700 hover:text-blue-800 font-semibold">info@vlad-rings.ru</a>
             </p>
           </section>
 

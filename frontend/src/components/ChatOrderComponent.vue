@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-purple-50/50 rounded-xl p-4 border-2 border-purple-200">
+  <div class="bg-blue-50/50 rounded-xl p-4 border-2 border-blue-200">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
-        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
         <span class="font-bold text-gray-900">Заказ #{{ localOrder.id }}</span>
@@ -33,7 +33,7 @@
           />
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-gray-900 text-sm">{{ item.brand }} {{ item.partNumber }}</p>
-            <p class="text-purple-600 font-bold text-sm mt-1">{{ item.price }} ₽</p>
+            <p class="text-blue-700 font-bold text-sm mt-1">{{ item.price }} ₽</p>
             
             <div class="flex items-center gap-3 mt-2">
               <div v-if="canEdit" class="flex items-center gap-2">
@@ -84,10 +84,10 @@
       </div>
     </div>
 
-    <div class="mt-4 pt-4 border-t-2 border-purple-200">
+    <div class="mt-4 pt-4 border-t-2 border-blue-200">
       <div class="flex justify-between items-center mb-3">
         <span class="text-gray-700 font-semibold">Итого:</span>
-        <span class="text-purple-600 font-bold text-xl">{{ localOrder.totalPrice }} ₽</span>
+        <span class="text-blue-700 font-bold text-xl">{{ localOrder.totalPrice }} ₽</span>
       </div>
 
       <div v-if="error" class="mb-3 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm">
@@ -119,7 +119,7 @@
         <button
           @click="handleCheckStock"
           :disabled="checking"
-          class="flex-1 px-4 py-2 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-sm disabled:opacity-50"
+          class="flex-1 px-4 py-2 border-2 border-blue-300 text-blue-800 rounded-lg hover:bg-blue-50 transition-colors font-semibold text-sm disabled:opacity-50"
         >
           <span v-if="checking">Проверка...</span>
           <span v-else>Проверить количество</span>

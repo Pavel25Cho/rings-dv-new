@@ -37,7 +37,7 @@
               <div v-if="photos.length > 1" class="flex items-center justify-center gap-4 mb-6">
                 <button
                   @click="previousPhoto"
-                  class="p-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="p-3 bg-blue-700 text-white rounded-full hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   :disabled="currentIndex === 0"
                 >
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@
 
                 <button
                   @click="nextPhoto"
-                  class="p-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="p-3 bg-blue-700 text-white rounded-full hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   :disabled="currentIndex === photos.length - 1"
                 >
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,8 +66,8 @@
                   v-for="(photo, index) in photos"
                   :key="index"
                   @click="currentIndex = index"
-                  class="cursor-pointer rounded-lg overflow-hidden border-4 transition-all hover:border-purple-400"
-                  :class="currentIndex === index ? 'border-purple-600' : 'border-gray-200'"
+                  class="cursor-pointer rounded-lg overflow-hidden border-4 transition-all hover:border-blue-400"
+                  :class="currentIndex === index ? 'border-blue-700' : 'border-gray-200'"
                 >
                   <img
                     :src="photo"

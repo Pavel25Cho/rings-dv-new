@@ -12,7 +12,7 @@
             :class="[
               'flex-1 px-6 py-5 text-center font-bold transition-all text-base',
               isActiveTab('/profile/info')
-                ? 'text-purple-600 border-b-4 border-purple-600 bg-white/40' 
+                ? 'text-blue-700 border-b-4 border-blue-700 bg-white/40' 
                 : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'
             ]"
           >
@@ -29,7 +29,7 @@
             :class="[
               'flex-1 px-6 py-5 text-center font-bold transition-all text-base',
               isActiveTab('/profile/chat')
-                ? 'text-purple-600 border-b-4 border-purple-600 bg-white/40' 
+                ? 'text-blue-700 border-b-4 border-blue-700 bg-white/40' 
                 : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'
             ]"
           >
@@ -40,7 +40,7 @@
               Чат
               <span 
                 v-if="unreadCount > 0"
-                class="ml-1 bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-sm font-bold rounded-full px-2.5 py-1"
+                class="ml-1 bg-gradient-to-br from-slate-700 to-blue-600 text-white text-sm font-bold rounded-full px-2.5 py-1"
               >
                 {{ unreadCount }}
               </span>

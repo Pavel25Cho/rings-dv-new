@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <div class="flex items-start gap-6 pb-8 border-b border-gray-300/50">
-      <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+      <div class="w-24 h-24 bg-gradient-to-br from-slate-700 to-blue-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-lg">
         {{ userInitial }}
       </div>
       <div class="flex-1">
@@ -23,7 +23,7 @@
           v-if="!authStore.user?.emailVerified"
           @click="sendVerificationEmail"
           :disabled="sendingEmail"
-          class="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-4 py-2 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ sendingEmail ? 'Отправка...' : 'Отправить письмо для подтверждения' }}
         </button>

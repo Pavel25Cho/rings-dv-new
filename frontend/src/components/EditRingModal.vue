@@ -46,7 +46,7 @@
                       :key="group.id"
                       type="button"
                       @click="selectGroup(group)"
-                      class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0"
+                      class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
                     >
                       <div class="font-bold text-gray-900">{{ group.nameRu }}</div>
                       <div class="text-sm text-gray-600">{{ group.typeCode }} • {{ group.brand || 'Без бренда' }}</div>
@@ -58,7 +58,7 @@
                   <div class="text-sm text-gray-600">{{ currentGroupInfo?.typeCode }} • {{ currentGroupInfo?.brand || 'Без бренда' }}</div>
                 </div>
                 <p v-if="selectedGroupName && !props.ring" class="mt-2 text-sm text-gray-600">
-                  Выбрано: <span class="font-bold text-purple-600">{{ selectedGroupName }}</span>
+                  Выбрано: <span class="font-bold text-blue-700">{{ selectedGroupName }}</span>
                 </p>
               </div>
 
@@ -75,13 +75,13 @@
 
               <div>
                 <label class="block text-sm font-bold text-gray-900 mb-2">Размеры</label>
-                <div v-if="currentGroupColumnNames.length > 0" class="mb-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                  <div class="text-sm font-bold text-purple-900 mb-2">Названия колонок для этой группы:</div>
+                <div v-if="currentGroupColumnNames.length > 0" class="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div class="text-sm font-bold text-blue-900 mb-2">Названия колонок для этой группы:</div>
                   <div class="flex flex-wrap gap-2">
                     <span
                       v-for="(columnName, index) in currentGroupColumnNames"
                       :key="index"
-                      class="px-3 py-1 bg-white rounded-lg text-sm font-semibold text-purple-700 border border-purple-300"
+                      class="px-3 py-1 bg-white rounded-lg text-sm font-semibold text-blue-800 border border-blue-300"
                     >
                       {{ columnName }}
                     </span>
@@ -143,7 +143,7 @@
                       @dragover.prevent="handleDragOver(index)"
                       @drop="handleDrop(index)"
                       @dragend="handleDragEnd"
-                      :class="{ 'opacity-50': draggedIndex === index, 'ring-2 ring-purple-500': dragOverIndex === index }"
+                      :class="{ 'opacity-50': draggedIndex === index, 'ring-2 ring-blue-600': dragOverIndex === index }"
                     >
                       <img
                         :src="photo"
@@ -152,7 +152,7 @@
                       />
                       
                       <!-- Номер фотографии -->
-                      <div class="absolute top-2 left-2 bg-purple-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                      <div class="absolute top-2 left-2 bg-blue-700 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                         {{ index + 1 }}
                       </div>
                       
@@ -205,7 +205,7 @@
                 <button
                   type="submit"
                   :disabled="saving || uploading || deleting"
-                  class="flex-1 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold disabled:opacity-50"
+                  class="flex-1 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors font-semibold disabled:opacity-50"
                 >
                   {{ uploading ? 'Загрузка фото...' : (saving ? 'Сохранение...' : 'Сохранить') }}
                 </button>

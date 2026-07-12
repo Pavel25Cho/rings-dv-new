@@ -4,7 +4,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg p-1">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center shadow-lg p-1">
               <img src="/logo_bw.png" alt="Vlad Rings" class="w-full h-full object-contain" />
             </div>
             <h3 class="text-xl font-bold text-gray-900">Vlad Rings</h3>
@@ -16,7 +16,7 @@
           <h3 class="text-lg font-bold mb-4 text-gray-900">Навигация</h3>
           <ul class="space-y-3">
             <li>
-              <router-link to="/" class="text-base font-medium text-gray-700 hover:text-purple-600 transition-colors flex items-center gap-2">
+              <router-link to="/" class="text-base font-medium text-gray-700 hover:text-blue-700 transition-colors flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -24,7 +24,7 @@
               </router-link>
             </li>
             <li>
-              <router-link to="/catalog" class="text-base font-medium text-gray-700 hover:text-purple-600 transition-colors flex items-center gap-2">
+              <router-link to="/catalog" class="text-base font-medium text-gray-700 hover:text-blue-700 transition-colors flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -38,13 +38,13 @@
           <h3 class="text-lg font-bold mb-4 text-gray-900">Контакты</h3>
           <div class="space-y-3">
             <div class="flex items-center gap-3">
-              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <p class="text-base font-medium text-gray-700">{{ content.footer_email }}</p>
             </div>
             <div class="flex items-center gap-3">
-              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <p class="text-base font-medium text-gray-700">ИНН: {{ content.footer_inn }}</p>
@@ -58,7 +58,7 @@
           <p class="text-base font-semibold text-gray-700">&copy; {{ currentYear }} vlad-rings.ru. Все права защищены.</p>
           <router-link 
             to="/privacy-policy" 
-            class="text-base font-medium text-gray-700 hover:text-purple-600 transition-colors"
+            class="text-base font-medium text-gray-700 hover:text-blue-700 transition-colors"
           >
             Политика конфиденциальности
           </router-link>

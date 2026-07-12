@@ -7,7 +7,7 @@
     />
     <div v-if="loading" class="flex-1 flex items-center justify-center my-10">
       <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600 mb-4"></div>
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-700 mb-4"></div>
         <p class="text-gray-600">Загрузка чата...</p>
       </div>
     </div>
@@ -26,8 +26,8 @@
       <div v-if="showHeader" class="glass-card-strongest p-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
@@ -47,7 +47,7 @@
           <button
             @click="loadOlderMessages"
             :disabled="loadingOlderMessages"
-            class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <svg v-if="loadingOlderMessages" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -71,7 +71,7 @@
             :class="[
               'max-w-[80%]',
               message.isMine 
-                ? 'bg-purple-600 text-white rounded-2xl rounded-tr-sm shadow-md' 
+                ? 'bg-blue-700 text-white rounded-2xl rounded-tr-sm shadow-md' 
                 : isAnotherAdmin(message)
                 ? 'bg-gradient-to-br from-emerald-50 to-teal-50 text-gray-900 rounded-2xl rounded-tl-sm shadow-sm border-2 border-emerald-400'
                 : 'bg-gradient-to-br from-blue-50 to-indigo-50 text-gray-900 rounded-2xl rounded-tl-sm shadow-sm border border-blue-100'
@@ -80,7 +80,7 @@
             <div v-if="!message.order" :class="['px-4 py-3', message.isMine ? 'text-white' : 'text-gray-900']">
               <p v-if="message.text" class="whitespace-pre-wrap break-words">{{ message.text }}</p>
               
-              <div v-if="message.attachments && message.attachments.length > 0" :class="['mt-2 space-y-2', message.text ? 'pt-2 border-t' : '', message.isMine ? 'border-purple-400' : 'border-gray-200']">
+              <div v-if="message.attachments && message.attachments.length > 0" :class="['mt-2 space-y-2', message.text ? 'pt-2 border-t' : '', message.isMine ? 'border-blue-400' : 'border-gray-200']">
                 <div
                   v-for="attachment in message.attachments"
                   :key="attachment.id"
@@ -128,7 +128,7 @@
               </div>
               
               <p 
-                :class="['text-xs mt-2', message.isMine ? 'text-purple-200' : isAnotherAdmin(message) ? 'text-emerald-600' : 'text-gray-500']"
+                :class="['text-xs mt-2', message.isMine ? 'text-blue-200' : isAnotherAdmin(message) ? 'text-emerald-600' : 'text-gray-500']"
               >
                 {{ formatTime(message.createdAt) }}
                 <span v-if="isAnotherAdmin(message) && authStore.isAdmin" class="ml-2 font-medium">
@@ -146,7 +146,7 @@
                 @updated="handleOrderUpdated"
               />
               <p 
-                :class="['text-xs mt-2', message.isMine ? 'text-purple-200' : isAnotherAdmin(message) ? 'text-emerald-600' : 'text-gray-500']"
+                :class="['text-xs mt-2', message.isMine ? 'text-blue-200' : isAnotherAdmin(message) ? 'text-emerald-600' : 'text-gray-500']"
               >
                 {{ formatTime(message.createdAt) }}
                 <span v-if="isAnotherAdmin(message)" class="ml-2 font-medium">
@@ -163,13 +163,13 @@
       </div>
 
       <div class="glass-card-strongest p-4">
-        <div v-if="selectedFile" class="mb-3 p-3 bg-purple-50 rounded-lg flex items-center justify-between">
+        <div v-if="selectedFile" class="mb-3 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg v-if="isImageFile(selectedFile)" class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg v-if="isImageFile(selectedFile)" class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <svg v-else class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-else class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </div>
@@ -180,7 +180,7 @@
           </div>
           <button
             @click="removeSelectedFile"
-            class="p-1 hover:bg-purple-200 rounded-full transition-colors"
+            class="p-1 hover:bg-blue-200 rounded-full transition-colors"
             type="button"
           >
             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,13 +212,13 @@
             @keydown.enter.exact.prevent="sendMessage"
             placeholder="Введите сообщение..."
             rows="2"
-            class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 resize-none"
+            class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 resize-none"
             :disabled="sendingMessage || uploadingFile"
           ></textarea>
           <button
             @click="sendMessage"
             :disabled="(!messageText.trim() && !selectedFile) || sendingMessage || uploadingFile"
-            class="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg v-if="sendingMessage || uploadingFile" class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

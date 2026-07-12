@@ -26,7 +26,7 @@
           @click="goToRings"
           class="glass-card rounded-2xl py-2 px-4 flex items-center hover:shadow-glass-lg transition-smooth cursor-pointer"
         >
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mr-5 shadow-lg">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-700 to-blue-700 flex items-center justify-center mr-5 shadow-lg">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -61,7 +61,7 @@
             @click="openCreateGroupModal"
             class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900 cursor-pointer"
           >
-            <svg class="w-8 h-8 mr-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 mr-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             <span>Добавить группу</span>
@@ -70,7 +70,7 @@
             @click="openCreateRingModal"
             class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900 cursor-pointer"
           >
-            <svg class="w-8 h-8 mr-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 mr-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             <span>Добавить кольцо</span>
@@ -79,7 +79,7 @@
             to="/admin/import" 
             class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900"
           >
-            <svg class="w-8 h-8 mr-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 mr-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
             <span>Импорт данных</span>
@@ -88,7 +88,7 @@
             @click="openEditContentModal"
             class="flex items-center p-4 glass-card rounded-2xl hover:bg-white/70 hover:shadow-glass-lg transition-smooth font-bold text-base text-gray-900 cursor-pointer"
           >
-            <svg class="w-8 h-8 mr-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 mr-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             <span>Редактировать главную</span>

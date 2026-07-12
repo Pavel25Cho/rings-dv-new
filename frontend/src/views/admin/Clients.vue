@@ -57,19 +57,19 @@
               >
                 <button
                   @click="selectFilter('emailVerified', '')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Email: Все
                 </button>
                 <button
                   @click="selectFilter('emailVerified', 'true')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Email: Подтвержден
                 </button>
                 <button
                   @click="selectFilter('emailVerified', 'false')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Email: Не подтвержден
                 </button>
@@ -95,19 +95,19 @@
               >
                 <button
                   @click="selectFilter('isBlocked', '')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Статус: Все
                 </button>
                 <button
                   @click="selectFilter('isBlocked', 'false')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Статус: Активен
                 </button>
                 <button
                   @click="selectFilter('isBlocked', 'true')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Статус: Заблокирован
                 </button>
@@ -133,19 +133,19 @@
               >
                 <button
                   @click="selectFilter('hasChat', '')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Сообщения: Все
                 </button>
                 <button
                   @click="selectFilter('hasChat', 'true')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Сообщения: Есть
                 </button>
                 <button
                   @click="selectFilter('hasChat', 'false')"
-                  class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors text-gray-700 font-medium"
+                  class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors text-gray-700 font-medium"
                 >
                   Сообщения: Нет
                 </button>
@@ -165,7 +165,7 @@
         </div>
 
         <div v-if="loading" class="text-center py-12">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600"></div>
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-700"></div>
           <p class="mt-4 text-gray-600">Загрузка...</p>
         </div>
 
@@ -266,7 +266,7 @@
                     </button>
                     <router-link
                       :to="{ name: 'AdminChats', query: { userId: client.id } }"
-                      class="px-3 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-semibold"
+                      class="px-3 py-1 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors text-sm font-semibold"
                       title="Открыть чат"
                     >
                       Чат

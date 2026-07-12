@@ -4,7 +4,7 @@
     <section class="max-w-7xl mx-auto mt-12 mb-16">
       <div class="glass-card-strong rounded-3xl p-16 md:p-24 text-center relative overflow-hidden">
         <!-- Decorative gradient orbs -->
-        <div class="absolute top-0 right-0 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl -z-10"></div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl -z-10"></div>
         <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl -z-10"></div>
         
         <div class="relative z-10">
@@ -33,7 +33,7 @@
     <section class="max-w-7xl mx-auto mb-16">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="glass-card rounded-2xl p-8 hover:shadow-glass-lg transition-smooth">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center mb-6 shadow-lg">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
@@ -45,7 +45,7 @@
         </div>
 
         <div class="glass-card rounded-2xl p-8 hover:shadow-glass-lg transition-smooth">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center mb-6 shadow-lg">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -57,7 +57,7 @@
         </div>
 
         <div class="glass-card rounded-2xl p-8 hover:shadow-glass-lg transition-smooth">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center mb-6 shadow-lg">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>

@@ -54,7 +54,7 @@
             <input
               v-model="filters.inStockOnly"
               type="checkbox"
-              class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+              class="w-4 h-4 text-blue-700 rounded focus:ring-blue-600"
               @change="applyFilters"
             />
             <span class="text-gray-700 font-medium whitespace-nowrap">Только с наличием</span>
@@ -63,7 +63,7 @@
             <input
               v-model="filters.withPriceOnly"
               type="checkbox"
-              class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+              class="w-4 h-4 text-blue-700 rounded focus:ring-blue-600"
               @change="applyFilters"
             />
             <span class="text-gray-700 font-medium whitespace-nowrap">Только с ценой</span>
@@ -72,7 +72,7 @@
       </div>
 
       <div v-if="loading" class="glass-card rounded-2xl text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600"></div>
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-700"></div>
         <p class="mt-4 text-body">Загрузка...</p>
       </div>
 
@@ -204,7 +204,7 @@
                     <button
                       @click="copyToClipboard(`partNumber-${ring.id}`, ring.partNumber)"
                       class="p-1 transition-colors rounded flex-shrink-0"
-                      :class="copiedItems[`partNumber-${ring.id}`] ? 'text-green-600' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'"
+                      :class="copiedItems[`partNumber-${ring.id}`] ? 'text-green-600' : 'text-gray-400 hover:text-blue-700 hover:bg-blue-50'"
                       :title="copiedItems[`partNumber-${ring.id}`] ? 'Скопировано!' : 'Копировать номер'"
                     >
                       <svg v-if="copiedItems[`partNumber-${ring.id}`]" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,7 +223,7 @@
                     <button
                       @click="copyToClipboard(`group-${ring.id}`, getGroupName(ring.ringGroup))"
                       class="p-1 transition-colors rounded"
-                      :class="copiedItems[`group-${ring.id}`] ? 'text-green-600' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'"
+                      :class="copiedItems[`group-${ring.id}`] ? 'text-green-600' : 'text-gray-400 hover:text-blue-700 hover:bg-blue-50'"
                       :title="copiedItems[`group-${ring.id}`] ? 'Скопировано!' : 'Копировать группу'"
                     >
                       <svg v-if="copiedItems[`group-${ring.id}`]" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,7 +332,7 @@
                     <button
                       v-if="editingField.ringId === ring.id"
                       @click="saveField(ring)"
-                      class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                      class="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-semibold"
                     >
                       Сохранить
                     </button>

@@ -34,7 +34,7 @@
                   />
                   <div class="flex-1 min-w-0">
                     <p class="font-semibold text-gray-900 text-lg">{{ ring.partNumber }}</p>
-                    <p class="text-purple-600 font-bold text-xl mt-1">{{ ring.price }} ₽</p>
+                    <p class="text-blue-700 font-bold text-xl mt-1">{{ ring.price }} ₽</p>
                     <p class="text-sm text-gray-600 mt-1">В наличии: {{ ring.inStock }} шт.</p>
                   </div>
                 </div>
@@ -60,7 +60,7 @@
                     type="number"
                     min="1"
                     :max="ring.inStock"
-                    class="flex-1 text-center text-lg font-semibold border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500 transition-colors"
+                    class="flex-1 text-center text-lg font-semibold border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-600 transition-colors"
                   />
                   
                   <button
@@ -75,10 +75,10 @@
                 </div>
               </div>
 
-              <div class="bg-purple-50 rounded-xl p-4">
+              <div class="bg-blue-50 rounded-xl p-4">
                 <div class="flex justify-between items-center">
                   <span class="text-gray-700 font-semibold">Итого:</span>
-                  <span class="text-purple-600 font-bold text-2xl">{{ totalPrice }} ₽</span>
+                  <span class="text-blue-700 font-bold text-2xl">{{ totalPrice }} ₽</span>
                 </div>
               </div>
 
@@ -96,7 +96,7 @@
                 <button
                   @click="handleAddToCart"
                   :disabled="loading"
-                  class="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="flex-1 px-4 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span v-if="loading">Добавление...</span>
                   <span v-else>Добавить в корзину</span>

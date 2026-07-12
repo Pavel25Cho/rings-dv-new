@@ -13,7 +13,7 @@
       >
         <div class="relative max-w-5xl max-h-[90vh] w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
           <!-- Header -->
-          <div class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-pink-600">
+          <div class="flex items-center justify-between p-4 bg-gradient-to-r from-slate-700 to-blue-700">
             <h3 class="text-lg font-bold text-white truncate flex-1 pr-4">
               {{ attachment?.originalFilename }}
             </h3>
@@ -37,7 +37,7 @@
               class="max-w-full max-h-full object-contain rounded-lg shadow-lg"
             />
             <div v-else class="flex flex-col items-center justify-center py-12">
-              <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-purple-600 mb-4"></div>
+              <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-700 mb-4"></div>
               <p class="text-gray-600">Загрузка изображения...</p>
             </div>
           </div>
@@ -50,7 +50,7 @@
             </div>
             <button
               @click="downloadImage"
-              class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-semibold shadow-lg hover:shadow-xl flex items-center gap-2"
+              class="px-6 py-3 bg-gradient-to-r from-slate-700 to-blue-700 text-white rounded-xl hover:from-slate-800 hover:to-blue-800 transition-all font-semibold shadow-lg hover:shadow-xl flex items-center gap-2"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

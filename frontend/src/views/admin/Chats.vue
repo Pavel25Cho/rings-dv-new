@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen from-purple-50 via-pink-50 to-blue-50 py-8 px-4">
+  <div class="min-h-screen from-slate-50 via-blue-50 to-sky-50 py-8 px-4">
     <div class="max-w-7xl mx-auto">
       <div class="glass-card rounded-3xl p-8 mb-8">
         <h1 class="heading-lg mb-2">Чаты с клиентами</h1>
@@ -9,13 +9,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-1">
           <div class="glass-card-strongest rounded-2xl overflow-hidden">
-            <div class="p-4 bg-gradient-to-r from-purple-600 to-pink-600">
+            <div class="p-4 bg-gradient-to-r from-slate-700 to-blue-700">
               <h2 class="text-lg font-bold text-white">Список чатов</h2>
-              <p class="text-sm text-purple-100 mt-1">{{ chats.length }} активных</p>
+              <p class="text-sm text-blue-100 mt-1">{{ chats.length }} активных</p>
             </div>
 
             <div v-if="loading" class="p-8 text-center">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-purple-600"></div>
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-700"></div>
               <p class="mt-3 text-gray-600 text-sm">Загрузка...</p>
             </div>
 
@@ -32,8 +32,8 @@
                 :key="chat.id"
                 @click="selectChat(chat)"
                 :class="[
-                  'w-full text-left p-4 transition-colors hover:bg-purple-50',
-                  selectedChat?.id === chat.id ? 'bg-purple-100' : 'bg-white/60'
+                  'w-full text-left p-4 transition-colors hover:bg-blue-50',
+                  selectedChat?.id === chat.id ? 'bg-blue-100' : 'bg-white/60'
                 ]"
               >
                 <div class="flex items-start justify-between">
@@ -74,7 +74,7 @@
           </div>
 
           <div v-else class="glass-card-strongest rounded-2xl overflow-hidden">
-            <div class="p-4 bg-gradient-to-r from-purple-600 to-pink-600">
+            <div class="p-4 bg-gradient-to-r from-slate-700 to-blue-700">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                   <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +88,7 @@
                       Заблокирован
                     </span>
                   </div>
-                  <div class="flex flex-col gap-0.5 text-sm text-purple-100 mt-1">
+                  <div class="flex flex-col gap-0.5 text-sm text-blue-100 mt-1">
                     <span v-if="selectedChat.user.phone">{{ selectedChat.user.phone }}</span>
                     <span>{{ selectedChat.user.email }}</span>
                     <span class="text-xs">ID: {{ selectedChat.user.id }}</span>
