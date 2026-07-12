@@ -507,10 +507,8 @@ class ExcelImportService
 
     /**
      * Импорт цен и количества из Excel файла
-     * Колонка A - тип кольца (typeCode)
-     * Колонка B - номер (partNumber)
-     * Колонка F - количество (inStock)
-     * Колонка M - цена (price)
+     * Формат файла: Группа (A), Номер (B), Цена (C), Количество (D)
+     * Обновляет только те кольца, которые есть в файле
      */
     public function importPricesAndStock(string $filePath): array
     {
@@ -541,17 +539,11 @@ class ExcelImportService
         ];
 
         try {
-            // Шаг 1: Обнуляем все цены и количества перед импортом
-            $this->logger->info('Resetting all prices and stock...');
-            $this->resetAllPricesAndStock();
-            $this->logger->info('All prices and stock reset to 0');
-            
             $sheet = $spreadsheet->getActiveSheet();
             $highestRow = $sheet->getHighestRow();
             
-            // Шаг 2: Собираем все данные из файла в память для обработки дубликатов
             $this->logger->info('Reading data from file...');
-            $importData = []; // [typeCode][partNumber] => ['price' => max, 'stock' => sum]
+            $importData = []; // [typeCode][partNumber] => ['price' => value, 'stock' => value]
             
             // Начинаем со 2-й строки (пропускаем заголовок)
             for ($row = 2; $row <= $highestRow; $row++) {
@@ -559,46 +551,46 @@ class ExcelImportService
                     $stats['rows_processed']++;
                     
                     // Читаем данные из колонок
-                    $typeCode = $this->getCellValue($sheet, 'A', $row);
+                    $groupTypeCode = $this->getCellValue($sheet, 'A', $row);
                     $partNumber = $this->getCellValue($sheet, 'B', $row);
-                    $inStock = $this->getCellValue($sheet, 'F', $row);
-                    $price = $this->getCellValue($sheet, 'M', $row);
+                    $price = $this->getCellValue($sheet, 'C', $row);
+                    $inStock = $this->getCellValue($sheet, 'D', $row);
 
                     // Пропускаем строки без ключевых данных
-                    if (empty($typeCode) || empty($partNumber)) {
+                    if (empty($groupTypeCode) || empty($partNumber)) {
                         continue;
                     }
 
-                    // Очищаем typeCode от лишних символов
-                    $typeCode = trim($typeCode);
+                    // Очищаем от лишних символов
+                    $groupTypeCode = trim($groupTypeCode);
                     $partNumber = trim($partNumber);
 
                     // Инициализируем структуру данных для этого кольца
-                    if (!isset($importData[$typeCode])) {
-                        $importData[$typeCode] = [];
+                    if (!isset($importData[$groupTypeCode])) {
+                        $importData[$groupTypeCode] = [];
                     }
                     
-                    if (!isset($importData[$typeCode][$partNumber])) {
-                        $importData[$typeCode][$partNumber] = [
+                    if (!isset($importData[$groupTypeCode][$partNumber])) {
+                        $importData[$groupTypeCode][$partNumber] = [
                             'price' => null,
                             'stock' => 0,
                             'row' => $row
                         ];
                     }
 
-                    // Обрабатываем количество (суммируем)
+                    // Обрабатываем количество (суммируем если есть дубликаты)
                     if ($inStock !== null && $inStock !== '') {
                         $inStockValue = is_numeric($inStock) ? (int)$inStock : 0;
-                        $importData[$typeCode][$partNumber]['stock'] += $inStockValue;
+                        $importData[$groupTypeCode][$partNumber]['stock'] += $inStockValue;
                     }
 
-                    // Обрабатываем цену (берём максимальную)
+                    // Обрабатываем цену (берём максимальную если есть дубликаты)
                     if ($price !== null && $price !== '') {
                         $priceValue = $this->normalizePrice($price);
                         if ($priceValue !== null) {
-                            $currentPrice = $importData[$typeCode][$partNumber]['price'];
+                            $currentPrice = $importData[$groupTypeCode][$partNumber]['price'];
                             if ($currentPrice === null || (float)$priceValue > (float)$currentPrice) {
-                                $importData[$typeCode][$partNumber]['price'] = $priceValue;
+                                $importData[$groupTypeCode][$partNumber]['price'] = $priceValue;
                             }
                         }
                     }
@@ -615,12 +607,17 @@ class ExcelImportService
             unset($spreadsheet);
             gc_collect_cycles();
             
-            // Шаг 3: Создаём индекс всех колец для быстрого поиска
+            // Создаём индекс всех колец для быстрого поиска
             $this->logger->info('Building rings index...');
             $ringsIndex = $this->buildRingsIndex();
             $this->logger->info('Rings index built with ' . count($ringsIndex) . ' type codes');
 
-            // Шаг 4: Обновляем кольца в БД
+            // Обнуляем цены и количество только для колец, которые есть в файле
+            $this->logger->info('Resetting prices and stock for rings in import file...');
+            $this->resetRingsInImport($importData, $ringsIndex);
+            $this->logger->info('Reset complete');
+
+            // Обновляем кольца в БД
             $batchSize = 50;
             $processedCount = 0;
             $ringsToUpdate = [];
@@ -709,37 +706,62 @@ class ExcelImportService
     }
 
     /**
-     * Обнуляет все цены и количество у всех колец
+     * Обнуляет цены и количество только для колец, которые есть в импортируемом файле
      */
-    private function resetAllPricesAndStock(): void
+    private function resetRingsInImport(array $importData, array $ringsIndex): void
     {
         $batchSize = 100;
-        $offset = 0;
+        $processedCount = 0;
+        $ringsToReset = [];
         
-        while (true) {
-            $rings = $this->entityManager->getRepository(Ring::class)
-                ->createQueryBuilder('r')
-                ->setFirstResult($offset)
-                ->setMaxResults($batchSize)
-                ->getQuery()
-                ->getResult();
-            
-            if (empty($rings)) {
-                break;
+        foreach ($importData as $typeCode => $rings) {
+            foreach ($rings as $partNumber => $data) {
+                // Ищем кольцо в индексе
+                if (isset($ringsIndex[$typeCode]) && isset($ringsIndex[$typeCode]['rings'][$partNumber])) {
+                    $ringId = $ringsIndex[$typeCode]['rings'][$partNumber];
+                    $ringsToReset[] = $ringId;
+                    $processedCount++;
+                    
+                    // Обрабатываем батчами
+                    if ($processedCount % $batchSize === 0) {
+                        $this->resetRingsByIds($ringsToReset);
+                        $ringsToReset = [];
+                        gc_collect_cycles();
+                    }
+                }
             }
-            
-            foreach ($rings as $ring) {
-                $ring->setPrice(null);
-                $ring->setInStock(0);
-                $this->entityManager->persist($ring);
-            }
-            
-            $this->entityManager->flush();
-            $this->entityManager->clear();
-            
-            $offset += $batchSize;
-            gc_collect_cycles();
         }
+        
+        // Обрабатываем оставшиеся
+        if (!empty($ringsToReset)) {
+            $this->resetRingsByIds($ringsToReset);
+        }
+    }
+
+    /**
+     * Обнуляет цены и количество для указанных ID колец
+     */
+    private function resetRingsByIds(array $ringIds): void
+    {
+        if (empty($ringIds)) {
+            return;
+        }
+        
+        $rings = $this->entityManager->getRepository(Ring::class)
+            ->createQueryBuilder('r')
+            ->where('r.id IN (:ids)')
+            ->setParameter('ids', $ringIds)
+            ->getQuery()
+            ->getResult();
+        
+        foreach ($rings as $ring) {
+            $ring->setPrice(null);
+            $ring->setInStock(0);
+            $this->entityManager->persist($ring);
+        }
+        
+        $this->entityManager->flush();
+        $this->entityManager->clear();
     }
 
     /**

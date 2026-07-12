@@ -2,7 +2,7 @@
   <div>
     <div class="px-4 md:px-8 py-8">
       <div class="max-w-7xl mx-auto">
-        <div class="glass-card-strong rounded-3xl p-10 mb-8">
+        <div class="glass-card-strong rounded-3xl p-10 mb-8 relative z-20">
           <div class="flex justify-between items-center mb-6">
             <h1 class="heading-lg">Управление группами</h1>
             <router-link
@@ -36,15 +36,24 @@
               </svg>
             </button>
             </div>
-            <label class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-              <input
-                v-model="filters.inStockOnly"
-                type="checkbox"
-                class="w-4 h-4 text-blue-700 rounded focus:ring-blue-600"
-                @change="applyFilters"
-              />
-              <span class="text-gray-700 font-medium whitespace-nowrap">Только с наличием</span>
-            </label>
+
+            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl">
+              <label class="text-gray-700 font-medium whitespace-nowrap">Наличие:</label>
+              <select v-model="filters.stockFilter" @change="applyFilters" class="border-0 bg-transparent focus:outline-none cursor-pointer">
+                <option value="all">Все</option>
+                <option value="in_stock">В наличии</option>
+                <option value="out_of_stock">Нет в наличии</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl">
+              <label class="text-gray-700 font-medium whitespace-nowrap">Фото:</label>
+              <select v-model="filters.photoFilter" @change="applyFilters" class="border-0 bg-transparent focus:outline-none cursor-pointer">
+                <option value="all">Все</option>
+                <option value="with_photo">С фото</option>
+                <option value="without_photo">Без фото</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -250,7 +259,8 @@ const imageModalVisible = ref(false)
 const selectedImage = ref('')
 const filters = ref({
   search: '',
-  inStockOnly: false
+  stockFilter: 'all',
+  photoFilter: 'all'
 })
 const currentPage = ref(1)
 const itemsPerPage = 20
@@ -275,11 +285,23 @@ const filteredGroups = computed(() => {
   }
   
   // Фильтр по наличию
-  if (filters.value.inStockOnly) {
+  if (filters.value.stockFilter === 'in_stock') {
     filtered = filtered.filter(group => {
       const groupRings = allRings.value.filter(ring => ring.ringGroup === group.id)
       return groupRings.some(ring => ring.inStock > 0)
     })
+  } else if (filters.value.stockFilter === 'out_of_stock') {
+    filtered = filtered.filter(group => {
+      const groupRings = allRings.value.filter(ring => ring.ringGroup === group.id)
+      return groupRings.length === 0 || groupRings.every(ring => ring.inStock === 0)
+    })
+  }
+  
+  // Фильтр по фото
+  if (filters.value.photoFilter === 'with_photo') {
+    filtered = filtered.filter(group => group.photoUrl || group.dimensionsPhotoUrl)
+  } else if (filters.value.photoFilter === 'without_photo') {
+    filtered = filtered.filter(group => !group.photoUrl && !group.dimensionsPhotoUrl)
   }
   
   // Сортировка

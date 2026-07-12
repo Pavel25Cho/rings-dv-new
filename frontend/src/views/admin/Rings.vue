@@ -2,7 +2,7 @@
   <div>
     <div class="px-4 md:px-8 py-8">
       <div class="max-w-7xl mx-auto">
-        <div class="glass-card-strong rounded-3xl p-10 mb-8">
+        <div class="glass-card-strong rounded-3xl p-10 mb-8 relative z-20">
           <div class="flex justify-between items-center mb-6">
             <div>
               <h1 class="heading-lg">Управление кольцами</h1>
@@ -27,47 +27,159 @@
           </div>
         </div>
         
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1 relative">
-            <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              v-model="filters.search"
-              type="text"
-              placeholder="Поиск по номеру"
-              class="input pl-12 pr-10"
-              @input="applyFilters"
-            />
-            <button
-              v-if="filters.search"
-              @click="clearSearch"
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors z-10"
-              title="Очистить поиск"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1 relative">
+              <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
+              <input
+                v-model="filters.search"
+                type="text"
+                placeholder="Поиск по номеру"
+                class="input pl-12 pr-10"
+                @input="applyFilters"
+              />
+              <button
+                v-if="filters.search"
+                @click="clearSearch"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors z-10"
+                title="Очистить поиск"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div 
+              v-if="!groupId"
+              class="relative min-w-[200px]"
+              v-click-outside="closeGroupDropdown"
+            >
+              <div class="relative">
+                <input
+                  v-model="groupSearchQuery"
+                  type="text"
+                  :placeholder="selectedGroupsText"
+                  class="input pr-10 cursor-pointer"
+                  @focus="showGroupDropdown = true"
+                  @input="showGroupDropdown = true"
+                  readonly
+                  @click="showGroupDropdown = !showGroupDropdown"
+                />
+                <button
+                  v-if="filters.groupIds.length > 0"
+                  @click.stop="clearGroupFilter"
+                  class="absolute right-10 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Очистить"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <svg 
+                  class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none transition-transform"
+                  :class="{ 'rotate-180': showGroupDropdown }"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              
+              <div
+                v-if="showGroupDropdown"
+                class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-lg border border-gray-200 max-h-64 overflow-y-auto"
+              >
+                <div class="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
+                  <input
+                    v-model="groupSearchQuery"
+                    type="text"
+                    placeholder="Поиск группы..."
+                    class="input text-sm"
+                    @click.stop
+                  />
+                </div>
+                
+                <label
+                  class="flex items-center gap-2 px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors"
+                  @click.stop
+                >
+                  <input
+                    type="checkbox"
+                    :checked="filters.groupIds.length === 0"
+                    @change="selectAllGroups"
+                    class="w-4 h-4 text-blue-700 rounded focus:ring-blue-600"
+                  />
+                  <span :class="{ 'font-semibold': filters.groupIds.length === 0 }">Все группы</span>
+                </label>
+                
+                <label
+                  v-for="group in filteredGroupsForSelect"
+                  :key="group.id"
+                  class="flex items-center gap-2 px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors"
+                  @click.stop
+                >
+                  <input
+                    type="checkbox"
+                    :value="group.id"
+                    :checked="filters.groupIds.includes(group.id)"
+                    @change="toggleGroup(group.id)"
+                    class="w-4 h-4 text-blue-700 rounded focus:ring-blue-600"
+                  />
+                  <span :class="{ 'font-semibold': filters.groupIds.includes(group.id) }">
+                    {{ group.typeCode }}
+                  </span>
+                </label>
+                
+                <div
+                  v-if="filteredGroupsForSelect.length === 0"
+                  class="px-4 py-2 text-gray-500 text-center"
+                >
+                  Группы не найдены
+                </div>
+              </div>
+            </div>
+
+            <button
+              @click="exportRings"
+              :disabled="exportLoading"
+              class="px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {{ exportLoading ? 'Экспорт...' : 'Экспортировать' }}
             </button>
           </div>
-          <label class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-            <input
-              v-model="filters.inStockOnly"
-              type="checkbox"
-              class="w-4 h-4 text-blue-700 rounded focus:ring-blue-600"
-              @change="applyFilters"
-            />
-            <span class="text-gray-700 font-medium whitespace-nowrap">Только с наличием</span>
-          </label>
-          <label class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-            <input
-              v-model="filters.withPriceOnly"
-              type="checkbox"
-              class="w-4 h-4 text-blue-700 rounded focus:ring-blue-600"
-              @change="applyFilters"
-            />
-            <span class="text-gray-700 font-medium whitespace-nowrap">Только с ценой</span>
-          </label>
+
+          <div class="flex flex-wrap gap-4">
+            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl">
+              <label class="text-gray-700 font-medium whitespace-nowrap">Наличие:</label>
+              <select v-model="filters.stockFilter" @change="applyFilters" class="border-0 bg-transparent focus:outline-none cursor-pointer">
+                <option value="all">Все</option>
+                <option value="in_stock">В наличии</option>
+                <option value="out_of_stock">Нет в наличии</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl">
+              <label class="text-gray-700 font-medium whitespace-nowrap">Цена:</label>
+              <select v-model="filters.priceFilter" @change="applyFilters" class="border-0 bg-transparent focus:outline-none cursor-pointer">
+                <option value="all">Все</option>
+                <option value="with_price">С ценой</option>
+                <option value="without_price">Без цены</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl">
+              <label class="text-gray-700 font-medium whitespace-nowrap">Фото:</label>
+              <select v-model="filters.photoFilter" @change="applyFilters" class="border-0 bg-transparent focus:outline-none cursor-pointer">
+                <option value="all">Все</option>
+                <option value="with_photo">С фото</option>
+                <option value="without_photo">Без фото</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -420,6 +532,21 @@ import EditRingModal from '@/components/EditRingModal.vue'
 import PhotoGalleryModal from '@/components/PhotoGalleryModal.vue'
 import ImageModal from '@/components/ImageModal.vue'
 
+// Директива для закрытия при клике вне элемента
+const vClickOutside = {
+  mounted(el, binding) {
+    el.clickOutsideEvent = function(event) {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value()
+      }
+    }
+    document.addEventListener('click', el.clickOutsideEvent)
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el.clickOutsideEvent)
+  }
+}
+
 const router = useRouter()
 const route = useRoute()
 
@@ -440,9 +567,14 @@ const imageModalVisible = ref(false)
 const selectedImage = ref('')
 const filters = ref({
   search: '',
-  inStockOnly: false,
-  withPriceOnly: false
+  groupIds: [],
+  stockFilter: 'all',
+  priceFilter: 'all',
+  photoFilter: 'all'
 })
+const exportLoading = ref(false)
+const showGroupDropdown = ref(false)
+const groupSearchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 20
 const sortField = ref('id')
@@ -456,6 +588,29 @@ const currentGroup = computed(() => {
   return groups.value.find(g => g.id === parseInt(groupId.value))
 })
 
+const filteredGroupsForSelect = computed(() => {
+  if (!groupSearchQuery.value) {
+    return groups.value
+  }
+  const query = groupSearchQuery.value.toLowerCase()
+  return groups.value.filter(group => 
+    group.typeCode?.toLowerCase().includes(query) ||
+    group.nameRu?.toLowerCase().includes(query) ||
+    group.nameEn?.toLowerCase().includes(query)
+  )
+})
+
+const selectedGroupsText = computed(() => {
+  if (filters.value.groupIds.length === 0) {
+    return 'Все группы'
+  }
+  if (filters.value.groupIds.length === 1) {
+    const group = groups.value.find(g => g.id === filters.value.groupIds[0])
+    return group?.typeCode || 'Группа'
+  }
+  return `Выбрано: ${filters.value.groupIds.length}`
+})
+
 const filteredRings = computed(() => {
   let filtered = rings.value
   
@@ -467,14 +622,30 @@ const filteredRings = computed(() => {
     )
   }
   
+  // Фильтр по группам (множественный выбор)
+  if (filters.value.groupIds.length > 0) {
+    filtered = filtered.filter(ring => filters.value.groupIds.includes(ring.ringGroup))
+  }
+  
   // Фильтр по наличию
-  if (filters.value.inStockOnly) {
+  if (filters.value.stockFilter === 'in_stock') {
     filtered = filtered.filter(ring => ring.inStock > 0)
+  } else if (filters.value.stockFilter === 'out_of_stock') {
+    filtered = filtered.filter(ring => ring.inStock === 0)
   }
   
   // Фильтр по цене
-  if (filters.value.withPriceOnly) {
+  if (filters.value.priceFilter === 'with_price') {
     filtered = filtered.filter(ring => ring.price && ring.price > 0)
+  } else if (filters.value.priceFilter === 'without_price') {
+    filtered = filtered.filter(ring => !ring.price || ring.price <= 0)
+  }
+  
+  // Фильтр по фото
+  if (filters.value.photoFilter === 'with_photo') {
+    filtered = filtered.filter(ring => ring.photos && ring.photos.length > 0)
+  } else if (filters.value.photoFilter === 'without_photo') {
+    filtered = filtered.filter(ring => !ring.photos || ring.photos.length === 0)
   }
   
   // Сортировка
@@ -716,6 +887,32 @@ function clearSearch() {
   applyFilters()
 }
 
+function toggleGroup(groupId) {
+  const index = filters.value.groupIds.indexOf(groupId)
+  if (index > -1) {
+    filters.value.groupIds.splice(index, 1)
+  } else {
+    filters.value.groupIds.push(groupId)
+  }
+  applyFilters()
+}
+
+function selectAllGroups() {
+  filters.value.groupIds = []
+  applyFilters()
+}
+
+function clearGroupFilter() {
+  filters.value.groupIds = []
+  groupSearchQuery.value = ''
+  applyFilters()
+}
+
+function closeGroupDropdown() {
+  showGroupDropdown.value = false
+  groupSearchQuery.value = ''
+}
+
 async function copyToClipboard(itemId, text) {
   try {
     let success = false
@@ -756,6 +953,71 @@ async function copyToClipboard(itemId, text) {
   } catch (error) {
     console.error('Ошибка копирования:', error)
     alert('Ошибка при копировании')
+  }
+}
+
+async function exportRings() {
+  if (exportLoading.value) return
+  
+  exportLoading.value = true
+  try {
+    // Формируем параметры запроса на основе активных фильтров
+    const params = new URLSearchParams()
+    
+    if (filters.value.search) {
+      params.append('search', filters.value.search)
+    }
+    
+    if (filters.value.groupIds.length > 0) {
+      filters.value.groupIds.forEach(id => {
+        params.append('groupIds[]', id)
+      })
+    }
+    
+    if (filters.value.stockFilter && filters.value.stockFilter !== 'all') {
+      params.append('stockFilter', filters.value.stockFilter)
+    }
+    
+    if (filters.value.priceFilter && filters.value.priceFilter !== 'all') {
+      params.append('priceFilter', filters.value.priceFilter)
+    }
+    
+    if (filters.value.photoFilter && filters.value.photoFilter !== 'all') {
+      params.append('photoFilter', filters.value.photoFilter)
+    }
+    
+    const queryString = params.toString()
+    const url = `/api/admin/rings/export${queryString ? '?' + queryString : ''}`
+    
+    const response = await apiClient.get(url, {
+      responseType: 'blob'
+    })
+    
+    // Создаем ссылку для скачивания
+    const blob = new Blob([response.data], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    })
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    
+    // Генерируем имя файла с датой и временем
+    const now = new Date()
+    const date = now.toISOString().split('T')[0]
+    const time = now.toTimeString().split(' ')[0].replace(/:/g, '-')
+    link.download = `rings_export-${date}-${time}.xlsx`
+    
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+    
+    alert('Экспорт успешно завершен')
+  } catch (error) {
+    console.error('Ошибка экспорта:', error)
+    alert('Ошибка при экспорте: ' + (error.response?.data?.message || error.message))
+  } finally {
+    exportLoading.value = false
   }
 }
 

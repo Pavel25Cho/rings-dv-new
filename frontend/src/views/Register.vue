@@ -70,7 +70,13 @@
           </div>
         </div>
 
-        <div>
+        <div class="space-y-4">
+          <p class="text-sm text-center text-gray-600">
+            Нажимая кнопку зарегистрироваться вы соглашаетесь с обработкой 
+            <router-link to="/privacy-policy" class="text-blue-700 hover:text-blue-800 underline font-medium transition-colors">
+              персональных данных
+            </router-link>
+          </p>
           <button
             type="submit"
             :disabled="loading"

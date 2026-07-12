@@ -2,7 +2,7 @@
   <div>
     <div class="px-4 md:px-8 py-8">
       <div class="max-w-7xl mx-auto">
-        <div class="glass-card-strong rounded-3xl p-10 mb-8">
+        <div class="glass-card-strong rounded-3xl p-10 mb-8 relative z-20">
           <h1 class="heading-lg mb-8">Каталог колец</h1>
 
           <div class="flex flex-col sm:flex-row gap-4">

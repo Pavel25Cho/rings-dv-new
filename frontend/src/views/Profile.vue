@@ -1,7 +1,7 @@
 <template>
   <div class="px-4 md:px-8 py-8">
     <div class="max-w-5xl mx-auto">
-      <div class="glass-card-strong rounded-3xl p-10 mb-8">
+      <div class="glass-card-strong rounded-3xl p-10 mb-8 relative z-20">
         <h1 class="heading-lg">Личный кабинет</h1>
       </div>
 

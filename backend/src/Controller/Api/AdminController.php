@@ -9,10 +9,13 @@ use App\Entity\Ring;
 use App\Entity\RingGroup;
 use App\Entity\SiteSetting;
 use App\Entity\User;
+use App\Service\ExcelExportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -21,7 +24,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private ExcelExportService $excelExportService
     ) {
     }
 
@@ -244,6 +248,48 @@ class AdminController extends AbstractController
         }, $rings);
         
         return $this->json($ringsData);
+    }
+
+    #[Route('/rings/export', name: 'rings_export', methods: ['GET'])]
+    public function exportRings(Request $request): BinaryFileResponse
+    {
+        try {
+            // Получаем параметры фильтрации из запроса
+            $filters = [
+                'search' => $request->query->get('search', ''),
+                'groupIds' => $request->query->all('groupIds') ?: [],
+                'stockFilter' => $request->query->get('stockFilter', 'all'),
+                'priceFilter' => $request->query->get('priceFilter', 'all'),
+                'photoFilter' => $request->query->get('photoFilter', 'all'),
+            ];
+            
+            // Генерируем файл
+            $filepath = $this->excelExportService->exportRings($filters);
+            
+            // Генерируем имя файла с датой и временем
+            $now = new \DateTime();
+            $filename = sprintf(
+                'rings_export-%s-%s.xlsx',
+                $now->format('Y-m-d'),
+                $now->format('H-i-s')
+            );
+            
+            // Создаем ответ с файлом
+            $response = new BinaryFileResponse($filepath);
+            $response->setContentDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                $filename
+            );
+            
+            // Файл будет удален после отправки
+            $response->deleteFileAfterSend(true);
+            
+            return $response;
+        } catch (\Exception $e) {
+            return new BinaryFileResponse('', 500, [
+                'Content-Type' => 'application/json'
+            ]);
+        }
     }
 
     #[Route('/rings', name: 'ring_create', methods: ['POST'])]

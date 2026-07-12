@@ -27,7 +27,7 @@ class EmailService
             $verificationUrl = $frontendUrl . '/verify-email?token=' . $user->getVerificationToken();
 
             $email = (new TemplatedEmail())
-                ->from(new Address($smtpFrom, 'Rings Catalog'))
+                ->from(new Address($smtpFrom, 'vlad-rings.ru'))
                 ->to($user->getEmail())
                 ->subject('Подтверждение регистрации')
                 ->htmlTemplate('emails/verification.html.twig')
@@ -62,7 +62,7 @@ class EmailService
             $chatUrl = $frontendUrl . '/profile/chat';
 
             $email = (new TemplatedEmail())
-                ->from(new Address($smtpFrom, 'Rings Catalog'))
+                ->from(new Address($smtpFrom, 'vlad-rings.ru'))
                 ->to($user->getEmail())
                 ->subject('У вас есть непрочитанные сообщения')
                 ->htmlTemplate('emails/unread_messages_user.html.twig')
@@ -99,7 +99,7 @@ class EmailService
             $adminChatUrl = $frontendUrl . '/admin/chats';
 
             $email = (new TemplatedEmail())
-                ->from(new Address($smtpFrom, 'Rings Catalog'))
+                ->from(new Address($smtpFrom, 'vlad-rings.ru'))
                 ->to($adminEmail)
                 ->subject('Новые сообщения в чатах')
                 ->htmlTemplate('emails/unread_messages_admin.html.twig')
